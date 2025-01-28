@@ -1,3 +1,7 @@
+
+import { SettingsMgr } from "./SettingsMgr.js";
+const settings = new SettingsMgr();
+
 import { OPTIONS_DOMAIN_EXCLUSIONS, STATE_OPEN_DOMAINS } from "./constants.js";
 
 const BASE_URL="https://wiki.rossmanngroup.com";
@@ -21,7 +25,10 @@ const searchWiki = async (searchTerm) => {
   });
 
   try {
-    const response = await fetch(`${endpoint}?${params}`);
+
+	//TODO: Implement a cache system to avoid querying the wiki too often
+	
+	const response = await fetch(`${endpoint}?${params}`);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -69,8 +76,18 @@ function openTabIfNotExists(url) {
 }
 
 
-function foundCATEntry(url) {
-  openTabIfNotExists(url);
+function foundCATEntry(searchTerm, url) {
+  if (settings.get("notification.mode") == "1") {
+    const data = {
+      type: "foundCATEntry",
+      searchTerm: searchTerm,
+      urlToWiki: url
+    };
+    sendMessageToAllTabs(data);
+  } else {
+	//Default behavior
+    openBackgroundTab(url);
+  }
 }
 
 function getOptions(keys) {
@@ -112,8 +129,7 @@ async function saveOpenDomains(domainName) {
 }
 
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  (async () => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
     const options = await getOptions([OPTIONS_DOMAIN_EXCLUSIONS, "appDisabled"]);
     console.log("CAT options: ", JSON.stringify(options));
@@ -126,7 +142,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (options["appDisabled"]) {
       return;
     }
-
 
       const currentDomain = message.domain;
     if (currentDomain) {
@@ -154,6 +169,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
       });
     }
-  })();
 });
 
+
+
+async function sendMessageToAllTabs(data) {
+	try {
+		const tabs = await chrome.tabs.query({});
+		tabs.forEach((tab) => {
+			if (tab) {
+				try {
+					chrome.tabs.sendMessage(tab.id, data, (response) => {
+						if (chrome.runtime.lastError) {
+							console.error("Error sending message to tab:", chrome.runtime.lastError.message);
+						}
+					});
+				} catch (e) {
+						console.error("Error sending message to tab:", e);
+				}
+			}
+		});
+	} catch (error) {
+		console.error("Error querying tabs:", error);
+		
+	}
+}
