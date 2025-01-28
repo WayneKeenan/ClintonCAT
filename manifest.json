@@ -28,5 +28,15 @@
       "resources": ["*"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "options_page": "options.html",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{11e4e61d-44d6-4d8c-af69-8d879d411a84}",
+      "strict_min_version": "58.0"
+    }
+  }
 }

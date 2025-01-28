@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Extension Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label, input, button {
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script type="module" src="options.js"></script>
+</head>
+<body>
+    <h1>Settings</h1>
+    <label for="domainExclusions">Add Site to Exclusion List:</label>
+    <input type="text" id="domainExclusions" placeholder="Enter site URL">
+    <button id="addButton">Add</button>
+    <h2>Excluded Sites</h2>
+    <ul id="exclusionList"></ul>
+</body>
+</html>

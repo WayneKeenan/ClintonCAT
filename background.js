@@ -1,10 +1,18 @@
+
 import { SettingsMgr } from "./SettingsMgr.js";
 const settings = new SettingsMgr();
+
+import { OPTIONS_DOMAIN_EXCLUSIONS, STATE_OPEN_DOMAINS } from "./constants.js";
 
 const BASE_URL="https://wiki.rossmanngroup.com";
 const SEARCH_API_URL= BASE_URL+ "/api.php";
 const WIKI_URL= BASE_URL+ "/wiki";
 const CAT_DOMAIN = getMainDomain(BASE_URL);
+
+console.log("initial load");
+chrome.storage.local.set({ [STATE_OPEN_DOMAINS]: []});
+chrome.storage.local.set({ appDisable: false});
+
 
 const searchWiki = async (searchTerm) => {
   const endpoint = SEARCH_API_URL;
@@ -82,21 +90,85 @@ function foundCATEntry(searchTerm, url) {
   }
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.domain) {
-    const searchTerm = getMainDomain(message.domain);
-    // handle circular case.
-    if (searchTerm === CAT_DOMAIN) {
-      return;
-    }
-    console.log("Searching for main domain: " + searchTerm);
-    searchWiki(searchTerm).then((results) => {
-      if (results.length > 0) {
-        const pageUrl = `${WIKI_URL}/${encodeURIComponent(results[0].title)}`;
-        foundCATEntry(searchTerm, pageUrl);
+function getOptions(keys) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(keys, (result) => {
+      console.log("Options: ", JSON.stringify(result));
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(result);
       }
     });
+  });
+}
+
+
+function isDomainExcluded(exclusions, domain)  {
+  if (exclusions == null) {
+    return false;
   }
+  return exclusions.some((excludedDomain) => domain.includes(excludedDomain));
+}
+
+async function getOpenDomains() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(STATE_OPEN_DOMAINS, (result) => {
+      console.log("Open domains: ", result[STATE_OPEN_DOMAINS] );
+      resolve(result[STATE_OPEN_DOMAINS] || []);
+    });
+  });
+}
+
+async function saveOpenDomains(domainName) {
+  const openDomains = await getOpenDomains();
+  if (!openDomains.includes(domainName)) {
+    openDomains.push(domainName);
+    chrome.storage.local.set({ [STATE_OPEN_DOMAINS]: openDomains});
+  }
+}
+
+
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+
+    const options = await getOptions([OPTIONS_DOMAIN_EXCLUSIONS, "appDisabled"]);
+    console.log("CAT options: ", JSON.stringify(options));
+
+    if (message.badgeText) {
+      chrome.action.setBadgeText({ text: message.badgeText });
+    }
+
+    console.log("CAT is loafing?", options["appDisabled"]);
+    if (options["appDisabled"]) {
+      return;
+    }
+
+      const currentDomain = message.domain;
+    if (currentDomain) {
+      const searchTerm = getMainDomain(currentDomain);
+      // handle circular case.
+      // ignore excluded domains
+      if ( (searchTerm === CAT_DOMAIN) || isDomainExcluded(options.domain_exclusions, currentDomain) ) {
+        return;
+      }
+
+      // Block multiple tb openings due to multiple windows and potentially multiple async 'onMessage' invocations
+      const openDomains = await getOpenDomains();
+      if (openDomains.includes(searchTerm)) {
+        return;
+      } else {
+        saveOpenDomains(currentDomain);
+      }
+
+
+      console.log("Searching for main domain: " + searchTerm);
+      searchWiki(searchTerm).then((results) => {
+        if (results.length > 0) {
+          const pageUrl = `${WIKI_URL}/${encodeURIComponent(results[0].title)}`;
+          foundCATEntry(pageUrl);
+        }
+      });
+    }
 });
 
 
