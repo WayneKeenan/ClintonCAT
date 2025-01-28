@@ -1,0 +1,13 @@
+.clinton-cat-banner{
+	position: fixed;
+	top: 0;
+	width: 100%;
+	background-color: black;
+	color: white;
+	padding: 10px;
+	z-index: 1000;
+	text-align: center;
+}
+.clinton-cat-banner a{
+	color: white;
+}

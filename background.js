@@ -1,8 +1,10 @@
+import { SettingsMgr } from "./SettingsMgr.js";
+const settings = new SettingsMgr();
+
 const BASE_URL="https://wiki.rossmanngroup.com";
 const SEARCH_API_URL= BASE_URL+ "/api.php";
 const WIKI_URL= BASE_URL+ "/wiki";
 const CAT_DOMAIN = getMainDomain(BASE_URL);
-
 
 const searchWiki = async (searchTerm) => {
   const endpoint = SEARCH_API_URL;
@@ -15,7 +17,10 @@ const searchWiki = async (searchTerm) => {
   });
 
   try {
-    const response = await fetch(`${endpoint}?${params}`);
+
+	//TODO: Implement a cache system to avoid querying the wiki too often
+	
+	const response = await fetch(`${endpoint}?${params}`);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -63,8 +68,18 @@ function openTabIfNotExists(url) {
 }
 
 
-function foundCATEntry(url) {
-  openTabIfNotExists(url);
+function foundCATEntry(searchTerm, url) {
+  if (settings.get("notification.mode") == "1") {
+    const data = {
+      type: "foundCATEntry",
+      searchTerm: searchTerm,
+      urlToWiki: url
+    };
+    sendMessageToAllTabs(data);
+  } else {
+	//Default behavior
+    openBackgroundTab(url);
+  }
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -78,9 +93,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     searchWiki(searchTerm).then((results) => {
       if (results.length > 0) {
         const pageUrl = `${WIKI_URL}/${encodeURIComponent(results[0].title)}`;
-        foundCATEntry(pageUrl);
+        foundCATEntry(searchTerm, pageUrl);
       }
     });
   }
 });
 
+
+
+async function sendMessageToAllTabs(data) {
+	try {
+		const tabs = await chrome.tabs.query({});
+		tabs.forEach((tab) => {
+			if (tab) {
+				try {
+					chrome.tabs.sendMessage(tab.id, data, (response) => {
+						if (chrome.runtime.lastError) {
+							console.error("Error sending message to tab:", chrome.runtime.lastError.message);
+						}
+					});
+				} catch (e) {
+						console.error("Error sending message to tab:", e);
+				}
+			}
+		});
+	} catch (error) {
+		console.error("Error querying tabs:", error);
+		
+	}
+}
