@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Clinton CAT",
+  "version": "1.0",
+  "description": "Search Rossmann's Consumer Action Taskforce (CAT) wiki for the site being visited",
+  "permissions": ["tabs", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+
