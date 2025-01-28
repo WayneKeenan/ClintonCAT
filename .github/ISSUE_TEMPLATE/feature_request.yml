@@ -1,0 +1,65 @@
+name: Feature Request
+description: Suggest an idea for this project
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a new feature!
+  - type: checkboxes
+    attributes:
+      label: Before submitting an issue, please check the following
+      options:
+        - label: I have searched for similar issues (both open and closed) and cannot find a duplicate
+          required: true
+        - label: I agree to follow the [Code of Conduct](https://github.com/WayneKeenan/ClintonCAT/blob/main/CODE_OF_CONDUCT.md)
+          required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: Describe what the problem is.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution
+      description: Describe the solution you'd like
+      placeholder: Describe your suggested changes and additions.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ClintonCAT version
+      description: |
+        You can find this in the manifest.json file.
+      placeholder: e.g. 1.0
+    validations:
+      required: true
+  - type: textarea
+    id: platform
+    attributes:
+      label: Platform
+      description: Please complete the following information
+      value: |
+        - OS:
+        - Browser: 
+
+        <!--
+        Example:
+        - OS: Android 13
+        - Browser: Firefox 134.0.2 (64 bit)
+        -->
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Anything else?
+      description: |
+        Links? References? Anything that will give us more context about the issue you are encountering!
+        Screen recordings are especially useful!
+    validations:
+      required: false
