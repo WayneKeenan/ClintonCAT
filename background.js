@@ -1,8 +1,7 @@
-const BASE_URL="https://wiki.rossmanngroup.com";
-const SEARCH_API_URL= BASE_URL+ "/api.php";
-const WIKI_URL= BASE_URL+ "/wiki";
+const BASE_URL = "https://wiki.rossmanngroup.com";
+const SEARCH_API_URL = BASE_URL + "/api.php";
+const WIKI_URL = BASE_URL + "/wiki";
 const CAT_DOMAIN = getMainDomain(BASE_URL);
-
 
 const searchWiki = async (searchTerm) => {
   const endpoint = SEARCH_API_URL;
@@ -11,7 +10,7 @@ const searchWiki = async (searchTerm) => {
     list: "search",
     srsearch: searchTerm,
     format: "json",
-    origin: "*" // Required for CORS if making the request from a browser
+    origin: "*", // Required for CORS if making the request from a browser
   });
 
   try {
@@ -25,7 +24,6 @@ const searchWiki = async (searchTerm) => {
     console.error("Error fetching data from MediaWiki API:", error);
   }
 };
-
 
 function getMainDomain(hostname) {
   try {
@@ -46,10 +44,8 @@ function getMainDomain(hostname) {
   }
 }
 
-
 function openBackgroundTab(url) {
-  chrome.tabs.create({ url: url, active: false }, (tab) => {
-  });
+  chrome.tabs.create({ url: url, active: false }, (tab) => {});
 }
 
 function openTabIfNotExists(url) {
@@ -62,14 +58,31 @@ function openTabIfNotExists(url) {
   });
 }
 
-
 function foundCATEntry(url) {
   openTabIfNotExists(url);
+}
+
+function getCattedPages() {
+  return JSON.parse(localStorage.getItem("cattedPages")) || [];
+}
+
+function saveCattedPage(domainName) {
+  const cattedPages = getCattedPages();
+  if (!cattedPages.includes(domainName)) {
+    cattedPages.push(domainName);
+    localStorage.setItem("cattedPages", JSON.stringify(cattedPages));
+  }
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.domain) {
     const searchTerm = getMainDomain(message.domain);
+    const cattedPages = getCattedPages();
+
+    if (cattedPages.includes(searchTerm)) {
+      return;
+    }
+
     // handle circular case.
     if (searchTerm === CAT_DOMAIN) {
       return;
@@ -83,4 +96,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
   }
 });
-
