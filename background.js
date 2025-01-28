@@ -1,6 +1,6 @@
-const BASE_URL="https://wiki.rossmanngroup.com";
-const SEARCH_API_URL= BASE_URL+ "/api.php";
-const WIKI_URL= BASE_URL+ "/wiki";
+const BASE_URL = "https://wiki.rossmanngroup.com";
+const SEARCH_API_URL = BASE_URL + "/api.php";
+const WIKI_URL = BASE_URL + "/wiki";
 const CAT_DOMAIN = getMainDomain(BASE_URL);
 
 
@@ -68,6 +68,10 @@ function foundCATEntry(url) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.badgeText) {
+    chrome.action.setBadgeText({ text: message.badgeText });
+  }
+
   if (message.domain) {
     const searchTerm = getMainDomain(message.domain);
     // handle circular case.
