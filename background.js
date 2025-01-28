@@ -82,7 +82,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.domain) {
     const searchTerm = getMainDomain(message.domain);
     const cattedPages = await getCattedPages();
-    console.log(searchTerm);
     if (cattedPages.includes(searchTerm)) {
       return;
     } else {
@@ -93,7 +92,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (searchTerm === CAT_DOMAIN) {
       return;
     }
-    console.log("Searching for main domain: " + searchTerm);
     searchWiki(searchTerm).then((results) => {
       if (results.length > 0) {
         const pageUrl = `${WIKI_URL}/${encodeURIComponent(results[0].title)}`;
