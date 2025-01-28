@@ -3,7 +3,7 @@
   "name": "Clinton CAT",
   "version": "1.0",
   "description": "Search Rossmann's Consumer Action Taskforce (CAT) wiki for the site being visited",
-  "permissions": ["scripting", "activeTab"],
+  "permissions": ["scripting", "activeTab", "storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"

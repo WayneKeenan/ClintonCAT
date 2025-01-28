@@ -62,25 +62,31 @@ function foundCATEntry(url) {
   openTabIfNotExists(url);
 }
 
-function getCattedPages() {
-  return JSON.parse(localStorage.getItem("cattedPages")) || [];
+async function getCattedPages() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get("cattedPages", (result) => {
+      resolve(result.cattedPages || []);
+    });
+  });
 }
 
-function saveCattedPage(domainName) {
-  const cattedPages = getCattedPages();
+async function saveCattedPage(domainName) {
+  const cattedPages = await getCattedPages();
   if (!cattedPages.includes(domainName)) {
     cattedPages.push(domainName);
-    localStorage.setItem("cattedPages", JSON.stringify(cattedPages));
+    chrome.storage.local.set({ cattedPages });
   }
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.domain) {
     const searchTerm = getMainDomain(message.domain);
-    const cattedPages = getCattedPages();
-
+    const cattedPages = await getCattedPages();
+    console.log(searchTerm);
     if (cattedPages.includes(searchTerm)) {
       return;
+    } else {
+      saveCattedPage(searchTerm);
     }
 
     // handle circular case.
