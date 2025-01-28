@@ -3,6 +3,12 @@
   "name": "Clinton CAT",
   "version": "1.0",
   "description": "Search Rossmann's Consumer Action Taskforce (CAT) wiki for the site being visited",
+  "icons": {
+    "16": "icons/clinton16.png",
+    "32": "icons/clinton32.png",
+    "48": "icons/clinton48.png",
+    "128": "icons/clinton128.png"
+  },
   "permissions": ["scripting", "activeTab", "storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
