@@ -35,7 +35,6 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
     };
 
     const options = await getOptions([OPTIONS_DOMAIN_EXCLUSIONS, "appDisabled"]);
-
     const activeTab = tabs[0];
     const currentDomain = new URL(activeTab.url).hostname;
 
@@ -45,18 +44,21 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
     
     const mainDomain = extractMainDomain(currentDomain);
     
+    // Await the fetch to prevent a race condition when the popup is opened
     let pagesDB = [];
     await fetchJson(PAGES_DB_JSON_URL).then(result => {pagesDB = result});
 
     getPagesForDomain(mainDomain, pagesDB).then((results) => {
         if (results.numPages === 0) {
+            wikiButtonEle.disabled = true;
+            wikiButtonEle.textContent = "Page not on CAT Wiki";
             return;
         }
-        console.log("pageUrl: ", results.pageUrls[0]);
+
+        wikiButtonEle.disabled = false;
         wikiButtonEle.addEventListener("click", () => {
             openForegroundTab(results.pageUrls[0]);
             window.close();
         })
-        wikiButtonEle.disabled = false;
     });
 });

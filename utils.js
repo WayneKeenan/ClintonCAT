@@ -19,7 +19,6 @@ export function fuzzySearch(query, arr) {
 }
 
 export async function getPagesForDomain(domain, database) {
-
   const pages =  fuzzySearch(domain, database);
 
   console.log("Pages fuzzy search result: ", pages);
