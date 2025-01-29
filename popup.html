@@ -35,14 +35,24 @@
         button:hover {
             background-color: #374151;
         }
+
+        button:disabled {
+            background-color: #6B7280;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 
 <body>
-<button id="on-off-toggle">Toggle On/Off</button>
-<button id="optionsButton">Go to Options</button>
+    <div id="button-wrapper">
+        <button id="on-off-toggle">Toggle On/Off</button>
+        <button id="optionsButton">Go to Options</button>
+        <button id="wikiButton" disabled>Open CAT Wiki Article</button>
+    </div>
 
-<script src="popup.js"></script>
+    <script type="module" src="constants.js"></script>
+    <script type="module" src="utils.js"></script>
+    <script type="module" src="popup.js"></script>
 </body>
 
 </html>
