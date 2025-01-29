@@ -8,7 +8,7 @@ jobs:
   create_zip:
     runs-on: ubuntu-latest
     outputs:
-      guid: ${{ steps.guid.outputs.GECKO_GUID }}
+      GECKO_GUID: ${{ steps.guid.outputs.GECKO_GUID }}
     steps:
       - name: Checkout release source
         uses: actions/checkout@v3
