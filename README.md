@@ -1,39 +1,68 @@
 # Clinton CAT
 
-## About
+Browser Extension that shows articles  
+from the **[CAT Wiki]** for pages you visit.
 
-Chrome Browser Extension for automatically searching [Rossmann's Consumer Action Taskforce (CAT)](https://wiki.rossmanngroup.com/wiki/Mission_statement) articles for the current site being visited. 
+*CAT : Consumer Action Taskforce*
 
-## Operation
+<br/>
 
-If a CAT wiki page for the domain is found then a new tab is opened in the background for the wiki article.
+## What it does
 
-## Install
+Currently if you visit a website that has been  
+referenced on the wiki, a new tab will open in  
+the background with the corresponding article.
 
-As this is not yet on the Chrome Web Store it's necessary to download and manually install it: 
+*Except for pages you have manually excluded.*
 
-1. Clone this repo or download a [release](https://github.com/WayneKeenan/ClintonCAT/releases) (recommended). 
-2. Open Extension settings: e.g. `chrome://extensions/`  or `brave://extensions/` etc.  (see below for Firefox)
-3. Enable Developer Mode
-4. Click `Load Unpacked`
-5. Navigate to the cloned/unzipped folder.
+<br/>
 
+## Installation
 
-### Firefox
+Currently the extension has to be manually installed.
 
- 
-about:addons -> Extensions -> 'Settings icon' -> Debug Addons -> Load Temporary Add-on... -> Open `ClintonCAT/manifest.json`
+1.  Download a **[Release]**  
+    *or clone the repository*
 
+2.  Unzip the contents of the download
 
+<br/>
 
-### Bleeding edge version
+### Chromium
 
-The 'main' branch should be the most stable one of the family to install, until it's on the various extension 'web stores'.
+3.  Open the extension settings:  
+    Chromium : `chrome://extensions/`  
+    Brave : `brave://extensions/`
 
-The most recent bleeding edge version will be the `dev` branch.
+4. Enable `Developer Mode`
 
+5. Click <kbd> Load Unpacked </kbd>
 
-## TODO
+6. Select the unzipped folder
+
+<br/>
+
+### Firefox / Librewolf
+
+3. Navigate to `about:debugging#/runtime/this-firefox`
+
+4. Click <kbd> Load Temporary Add-on... </kbd>
+
+5. Select the `manifest.json` in the unzipped download
+
+<br/>
+
+### Unstable Version
+
+Until this extension has been published to the  
+various extension stores, the `main` branch of  
+this repository should be the most stable.
+
+Active development is happens on the `dev` branch.
+
+<br/>
+
+## Work In Progress
 
 - [ ] Platform: Safari Extension
 - [ ] UI: Alternate notification strategy: overlay button in-page header
@@ -41,12 +70,32 @@ The most recent bleeding edge version will be the `dev` branch.
 - [ ] Logic: Extending the trailing TLD list
 - [ ] Logic: More accurate Wiki search (e.g. only display pages with 'Controversies')
 
-# Contributions
+<br/>
 
-Thanks to:
+## Contributions
 
-- @blimeybloke  (Settings and whitelisting)
-- @lnardon (Firefox)
-- @khonkhortisan (Firefox)
-- @SalimOfShadow (Multiple tab prevention)
-- @EricFrancis12 (Toggle on/off)
+Thank you to the following people as  
+well as everyone else that has helped:
+
+-   [@blimeybloke]  
+    *Settings and whitelisting*
+-   [@lnardon]  
+    *Firefox Support*
+-   [@khonkhortisan]  
+    *Firefox Support*
+-   [@SalimOfShadow]  
+    *Multiple tab prevention*
+-   [@EricFrancis12]  
+    *On / Off Toggle*
+
+
+
+[CAT Wiki]: https://wiki.rossmanngroup.com/wiki/Mission_statement
+[Release]: https://github.com/WayneKeenan/ClintonCAT/releases
+
+
+[@khonkhortisan]: https://github.com/khonkhortisan
+[@SalimOfShadow]: https://github.com/SalimOfShadow
+[@EricFrancis12]: https://github.com/EricFrancis12
+[@blimeybloke]: https://github.com/blimeybloke
+[@lnardon]: https://github.com/lnardon
