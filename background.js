@@ -1,6 +1,6 @@
 import { OPTIONS_DOMAIN_EXCLUSIONS, STATE_OPEN_DOMAINS } from "./constants.js";
 import { getOptions, extractMainDomain, getPagesForDomain, openBackgroundTab, isDomainExcluded } from "./utils.js";
-import { FETCH_INTERVAL_MINUTES, updatePagesDB, getCachedPagesDB } from "./db-cache.js";
+import { FETCH_INTERVAL_MINUTES, updatePagesDB } from "./db-cache.js";
 
 const UPDATE_ALARM_NAME = "updatePagesDB";
 
