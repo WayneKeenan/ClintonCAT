@@ -1,4 +1,5 @@
 import { WIKI_URL } from "./constants.js";
+import { getCachedPagesDB } from "./db-cache.js";
 
 export async function fetchJson(url) {
   try {
@@ -18,8 +19,9 @@ export function fuzzySearch(query, arr) {
   return arr.filter(item => item.toLowerCase().includes(lowerQuery));
 }
 
-export async function getPagesForDomain(domain, database) {
-  const pages =  fuzzySearch(domain, database);
+export async function getPagesForDomain(domain) {
+  const pagesDB = await getCachedPagesDB();
+  const pages =  fuzzySearch(domain, pagesDB);
 
   console.log("Pages fuzzy search result: ", pages);
 
