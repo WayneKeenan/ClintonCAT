@@ -1,12 +1,24 @@
-import { OPTIONS_DOMAIN_EXCLUSIONS, STATE_OPEN_DOMAINS, PAGES_DB_JSON_URL } from "./constants.js";
-import {getOptions, extractMainDomain, getPagesForDomain, openBackgroundTab, isDomainExcluded, fetchJson} from "./utils.js";
+import { OPTIONS_DOMAIN_EXCLUSIONS, STATE_OPEN_DOMAINS } from "./constants.js";
+import { getOptions, extractMainDomain, getPagesForDomain, openBackgroundTab, isDomainExcluded } from "./utils.js";
+import { FETCH_INTERVAL_MINUTES, updatePagesDB, getCachedPagesDB } from "./db-cache.js";
+
+const UPDATE_ALARM_NAME = "updatePagesDB";
 
 console.log("initial load");
 chrome.storage.local.set({ [STATE_OPEN_DOMAINS]: []});
 chrome.storage.local.set({ appDisable: false});
 
-let pagesDB = [];
-fetchJson(PAGES_DB_JSON_URL).then(result => {pagesDB = result});
+// Alarm to trigger periodic updates
+chrome.alarms.create(UPDATE_ALARM_NAME, { periodInMinutes: FETCH_INTERVAL_MINUTES });
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === UPDATE_ALARM_NAME) {
+    updatePagesDB();
+  }
+});
+
+// Initial fetch on extension load
+updatePagesDB();
+
 
 function openTabIfNotExists(url) {
   // Query all tabs to find if the URL is already open
@@ -94,7 +106,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         saveOpenDomains(currentDomain);
       }
 
-      getPagesForDomain(mainDomain, pagesDB).then((results) => {
+      getPagesForDomain(mainDomain).then((results) => {
         if (results.numPages > 0) {
           indicateCATEntries(results.numPages);
           foundCATEntry(results.pageUrls[0]);

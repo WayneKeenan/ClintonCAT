@@ -1,4 +1,4 @@
-import { OPTIONS_DOMAIN_EXCLUSIONS, PAGES_DB_JSON_URL } from "./constants.js";
+import { OPTIONS_DOMAIN_EXCLUSIONS, PAGES_DB_JSON_URL, ALLOW_SITE, EXCLUDE_SITE } from "./constants.js";
 import { extractMainDomain, isDomainExcluded, getOptions, openForegroundTab, getPagesForDomain, fetchJson } from "./utils.js";
 
 let appDisabled = false;
@@ -43,12 +43,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
     }
     
     const mainDomain = extractMainDomain(currentDomain);
-    
-    // Await the fetch to prevent a race condition when the popup is opened
-    let pagesDB = [];
-    await fetchJson(PAGES_DB_JSON_URL).then(result => {pagesDB = result});
-
-    getPagesForDomain(mainDomain, pagesDB).then((results) => {
+    getPagesForDomain(mainDomain).then((results) => {
         if (results.numPages === 0) {
             wikiButtonEle.disabled = true;
             wikiButtonEle.textContent = "Page not on CAT Wiki";
@@ -62,3 +57,56 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
         })
     });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const currentTab = tabs[0];
+        if (currentTab && currentTab.url) {
+            const mainDomain = extractMainDomain(currentTab.url);
+            if (mainDomain) {
+                chrome.storage.sync.get([OPTIONS_DOMAIN_EXCLUSIONS], (result) => {
+                    console.log("Loaded domain_exclusions:", result[OPTIONS_DOMAIN_EXCLUSIONS]);
+                    const exclusions = result[OPTIONS_DOMAIN_EXCLUSIONS] || [];
+                    showCurrentDomain(mainDomain, exclusions);
+                });
+            }
+        } else {
+            console.error("No active tab or URL available");
+        }
+    });
+});
+
+function showCurrentDomain(currentDomain, exclusionList) {
+    const domainDisplay = document.createElement("p");
+    domainDisplay.textContent = `Current Domain: ${currentDomain}`;
+    document.body.appendChild(domainDisplay);
+    const button = document.createElement("button");
+    button.setAttribute("id", "switchStateButton");
+    if (exclusionList.includes(currentDomain)) 
+        button.textContent = ALLOW_SITE;
+    
+    else 
+        button.textContent = EXCLUDE_SITE;
+        
+    button.addEventListener("click", () => { handleButtonClick(currentDomain, exclusionList) });
+    document.body.appendChild(button);
+}
+  
+function handleButtonClick(currentDomain, exclusionList) {
+    const button = document.getElementById("switchStateButton");
+    if (button) {
+        if (button.textContent === ALLOW_SITE) {
+            const updatedExclusions = exclusionList.filter((item) => item !== currentDomain);
+            chrome.storage.sync.set({ [OPTIONS_DOMAIN_EXCLUSIONS]: updatedExclusions }, () => {
+                console.log("Exclusions updated:", updatedExclusions);
+            });
+            button.textContent = EXCLUDE_SITE;
+        } else {
+            exclusionList.push(currentDomain);
+            chrome.storage.sync.set({ [OPTIONS_DOMAIN_EXCLUSIONS]: exclusionList }, () => {
+                console.log("Exclusions updated:", exclusionList);
+            });
+            button.textContent = ALLOW_SITE;
+        }    
+    }
+}
