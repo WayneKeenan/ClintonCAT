@@ -1,4 +1,4 @@
-import { OPTIONS_DOMAIN_EXCLUSIONS, PAGES_DB_JSON_URL, ALLOW_SITE, EXCLUDE_SITE } from "./constants.js";
+import { OPTIONS_DOMAIN_EXCLUSIONS, PAGES_DB_JSON_URL, ALLOW_SITE, EXCLUDE_SITE, NOT_ON_WIKI, OPEN_IN_WIKI } from "./constants.js";
 import { extractMainDomain, isDomainExcluded, getOptions, openForegroundTab, getPagesForDomain, fetchJson } from "./utils.js";
 
 let appDisabled = false;
@@ -46,11 +46,12 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
     getPagesForDomain(mainDomain).then((results) => {
         if (results.numPages === 0) {
             wikiButtonEle.disabled = true;
-            wikiButtonEle.textContent = "Page not on CAT Wiki";
+            wikiButtonEle.textContent = NOT_ON_WIKI;
             return;
         }
 
         wikiButtonEle.disabled = false;
+        wikiButtonEle.textContent = OPEN_IN_WIKI;
         wikiButtonEle.addEventListener("click", () => {
             openForegroundTab(results.pageUrls[0]);
             window.close();
