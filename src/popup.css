@@ -1,42 +1,95 @@
-#popup-container {
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 14px;
-    background-color: #f8f9fa;
-    color: #202122;
-    margin: 10px;
-    padding: 10px;
-    width: 250px;
-    border: 1px solid #a2a9b1;
-    border-radius: 5px;
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
-    text-align: justify;
-    margin-bottom: 15px;
+* {
+    font-family: "Inter", serif;
 }
 
-h2 {
-    font-size: 16px;
-    margin-bottom: 10px;
+:root {
+    --primary-color: slateblue;
+}
+
+
+body {
+    margin: 0;
+}
+
+.popup-container {
+    font-size: 14px;
+    width: 310px;
+}
+
+/* Top header*/
+.top-banner {
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--primary-color);
+    color: white;
+    display: flex
+}
+
+.top-banner h2 {
+    font-size: 1.125rem;
+    margin: 0;
+    text-transform: uppercase;
     text-align: center;
-    font-weight: normal;
+    font-weight: 700;
 }
 
-#popup-button {
-    background-color: #f8f9fa;
-    border: 1px solid #a2a9b1;
-    border-radius: 3px;
-    color: #0645ad;
+.button-toggle {
+    background: white;
+    border: 0;
+    width: 45px;
+    border-radius: 9999px;
+    position: relative;
+}
+
+.button-toggle .button-toggle-inner {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    height: 90%;
+    margin: auto;
+    border-radius: 99999px;
+}
+.button-toggle.toggle-on .button-toggle-inner {
+    right: 2px;
+    background: var(--primary-color);
+}
+.button-toggle.toggle-off .button-toggle-inner {
+    left: 2px;
+    background: #9ca3af;
+}
+
+/*  Buttons section */
+.buttons {
+    padding: 10px;
+    display: flex;
+}
+.buttons > * + * {
+    margin-left: 5px;
+}
+
+.popup-button {
+    border-radius: 7px;
     cursor: pointer;
-    font-size: 14px;
-    padding: 6px 12px;
+    font-size: 0.875rem;
+    padding: 10px 12px;
     text-align: center;
     text-decoration: none;
     transition: background-color 0.2s, border-color 0.2s;
     width: 100%;
-    display: block;
+    display: flex;
     margin-bottom: 5px;
+    border: 0;
+    background: #f7f0ff;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: var(--primary-color);
 }
 
-#popup-button:hover {
-    background-color: #e3e4e5;
-    border-color: #72777d;
+.popup-button svg {
+    margin: auto;
+}
+
+.popup-button:hover {
+    background-color: #d7c8f1;
 }
