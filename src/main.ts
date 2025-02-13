@@ -68,7 +68,7 @@ export class Main {
      * and indicates how many CAT pages were found.
      */
     async onPageLoaded(domain: string, url: string): Promise<void> {
-        const mainDomain = this.domainTools.extractMainDomain(domain);
+        const mainDomain = await this.domainTools.extractMainDomain(domain);
         console.log('Main domain:', mainDomain);
 
         if (this.checkDomainIsExcluded(mainDomain)) {

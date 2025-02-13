@@ -1,28 +1,57 @@
 export class DomainTools {
-    private twoLevelTLDs = ['co.uk', 'gov.uk', 'com.au', 'org.uk', 'ac.uk'];
+    private suffixDB: string[] = [];
+    private static SUFFIX_LIST_URL = 'https://publicsuffix.org/list/public_suffix_list.dat';
 
-    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
     constructor() {
-        // TODO: load https://publicsuffix.org into twoLevelTLDs
+        this.loadSuffixList().then(() => console.log('Public Suffix list loaded'));
     }
 
-    extractMainDomain(hostname: string) {
+    private async fetchSuffixList(url: string): Promise<string> {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${String(response.status)}`);
+            }
+            return await response.text();
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error(`Failed to fetch public suffix list: ${error.message}`);
+            } else {
+                console.error(`Failed to fetch public suffix list:`, error);
+            }
+            throw error;
+        }
+    }
+
+    private processSuffixList(text: string): void {
+        this.suffixDB = text.split('\n').filter((line) => line.trim() && !line.startsWith('//'));
+    }
+
+    private async loadSuffixList(): Promise<void> {
+        try {
+            const text = await this.fetchSuffixList(DomainTools.SUFFIX_LIST_URL);
+            this.processSuffixList(text);
+        } catch (error) {
+            console.error('Error loading public suffix list:', error);
+        }
+    }
+
+    async extractMainDomain(hostname: string): Promise<string> {
+        if (this.suffixDB.length === 0) {
+            await this.loadSuffixList();
+        }
+
         const cleanHostname = hostname.replace(/^www\./, '');
         const parts = cleanHostname.split('.');
 
-        for (const tld of this.twoLevelTLDs) {
-            const tldParts = tld.split('.');
-            if (parts.length > tldParts.length && parts.slice(-tldParts.length).join('.') === tld) {
-                return parts.slice(-(tldParts.length + 1), -tldParts.length).join('.');
+        for (let i = 1; i < parts.length; i++) {
+            const potentialTLD = parts.slice(i).join('.');
+            if (this.suffixDB.includes(potentialTLD)) {
+                return parts.slice(0, i).join('.');
             }
         }
 
-        // Default case for regular TLDs like .com, .net, etc.
-        if (parts.length > 2) {
-            return parts.slice(-2, -1)[0];
-        } else {
-            return parts[0];
-        }
+        return parts.length > 1 ? parts[parts.length - 2] : parts[0];
     }
 
     isDomainExcluded(exclusions: string[], domain: string): boolean {
