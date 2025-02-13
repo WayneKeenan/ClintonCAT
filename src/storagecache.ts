@@ -9,6 +9,8 @@ export class StorageCache {
     static readonly FETCH_INTERVAL_MINUTES: number = 30; // Fetch every 30 minutes
     static readonly FETCH_INTERVAL_MS: number = StorageCache.FETCH_INTERVAL_MINUTES * 60 * 1000;
 
+    //TODO: Add caching for the suffix list
+
     private pagesDb: PagesDB;
     constructor(pagesDb: PagesDB) {
         this.pagesDb = pagesDb;
