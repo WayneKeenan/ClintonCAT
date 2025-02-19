@@ -1,28 +1,40 @@
-export class DomainTools {
-    private twoLevelTLDs = ['co.uk', 'gov.uk', 'com.au', 'org.uk', 'ac.uk'];
+import suffixDbDefaultJson from '../data/suffix_db.json';
 
-    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+export class DomainTools {
+    private suffixDB: string[] = [];
+    static readonly suffixDbDefault: string[] = suffixDbDefaultJson;
+
     constructor() {
-        // TODO: load https://publicsuffix.org into twoLevelTLDs
+        this.initDefaultSuffixList();
+        console.log('Public Suffix list loaded');
     }
 
-    extractMainDomain(hostname: string) {
+    private initDefaultSuffixList(): void {
+        if (DomainTools.suffixDbDefault.length === 0) {
+            console.error(
+                "Error: Suffix database is empty. Please run '../scripts/utils/tld2json.py' to generate the required JSON file."
+            );
+            return;
+        }
+        this.suffixDB = DomainTools.suffixDbDefault;
+    }
+
+    extractMainDomain(hostname: string): string {
+        if (this.suffixDB.length === 0) {
+            this.initDefaultSuffixList();
+        }
+
         const cleanHostname = hostname.replace(/^www\./, '');
         const parts = cleanHostname.split('.');
 
-        for (const tld of this.twoLevelTLDs) {
-            const tldParts = tld.split('.');
-            if (parts.length > tldParts.length && parts.slice(-tldParts.length).join('.') === tld) {
-                return parts.slice(-(tldParts.length + 1), -tldParts.length).join('.');
+        for (let i = 1; i < parts.length; i++) {
+            const potentialTLD = parts.slice(i).join('.');
+            if (this.suffixDB.includes(potentialTLD)) {
+                return parts.slice(0, i).join('.');
             }
         }
 
-        // Default case for regular TLDs like .com, .net, etc.
-        if (parts.length > 2) {
-            return parts.slice(-2, -1)[0];
-        } else {
-            return parts[0];
-        }
+        return parts.length > 1 ? parts[parts.length - 2] : parts[0];
     }
 
     isDomainExcluded(exclusions: string[], domain: string): boolean {
