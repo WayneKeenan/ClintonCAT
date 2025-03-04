@@ -1,3 +1,4 @@
+import sendMessage from '@/common/messages/send-message';
 import Preferences from '@/common/services/preferences';
 import ChromeLocalStorage from '@/storage/chrome/chrome-local-storage';
 import ChromeSyncStorage from '@/storage/chrome/chrome-sync-storage';
@@ -26,6 +27,12 @@ const Popup = () => {
 
     const openCATPage = () => {
         // TODO:
+    };
+
+    const testNotification = () => {
+        sendMessage('notify', { title: 'Test Notification', message: 'This is a test notification' }).catch(
+            console.error
+        );
     };
 
     const allowThisSite = () => {
@@ -62,6 +69,9 @@ const Popup = () => {
                 </button>
                 <button className={styles.popupButton} onClick={excludeThisSite}>
                     Exclude this site
+                </button>
+                <button className={styles.popupButton} onClick={() => testNotification()}>
+                    Test Notification
                 </button>
                 <button className={styles.popupButton} onClick={openOptionsPage}>
                     Go to Options

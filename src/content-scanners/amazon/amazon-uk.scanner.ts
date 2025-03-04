@@ -1,6 +1,6 @@
 import { IContentScannerPlugin, IScanParameters } from '@/common/services/content-scanner.types';
 
-class AmazonUKPageScanner implements IContentScannerPlugin {
+class AmazonUKScanner implements IContentScannerPlugin {
     metaInfo(): string {
         return 'amazon.co.uk';
     }
@@ -17,4 +17,4 @@ class AmazonUKPageScanner implements IContentScannerPlugin {
     }
 }
 
-export default AmazonUKPageScanner;
+export default AmazonUKScanner;

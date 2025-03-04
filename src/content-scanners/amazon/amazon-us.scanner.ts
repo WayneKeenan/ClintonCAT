@@ -1,7 +1,7 @@
 import { IContentScannerPlugin, IScanParameters } from '@/common/services/content-scanner.types';
 import { CATWikiPageSearchResults } from '@/database';
 
-class AmazonUSPageScanner implements IContentScannerPlugin {
+class AmazonUSScanner implements IContentScannerPlugin {
     metaInfo(): string {
         return 'amazon.com';
     }
@@ -24,4 +24,4 @@ class AmazonUSPageScanner implements IContentScannerPlugin {
     }
 }
 
-export default AmazonUSPageScanner;
+export default AmazonUSScanner;

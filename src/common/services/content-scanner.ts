@@ -1,6 +1,6 @@
-// The 'require.context' feature depends on WebPack (@types/webpack)
-const context: __WebpackModuleApi.RequireContext = require.context('../../content-scanners', true, /\.ts$/, 'sync');
 import DefaultScanner from '@/content-scanners/default-scanner';
+import objectKeys from '@/utils/helpers/object-keys';
+import scanners from '@/content-scanners/scanners';
 import { IContentScannerPlugin, IScanParameters } from './content-scanner.types';
 
 class ContentScanner {
@@ -26,17 +26,11 @@ class ContentScanner {
     }
 
     private findScannerPlugins(): void {
-        context.keys().map((key) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const module = context(key);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            const className = Object.keys(module)[0];
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            const Class = module[className];
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+        objectKeys(scanners).forEach((key) => {
+            const Class = scanners[key];
             const obj: IContentScannerPlugin = new Class();
             this.scannerPlugins.push(obj);
-            console.log('Added content scanner plugin: ', className, ' metainfo: ', obj.metaInfo());
+            console.log('Added content scanner plugin: ', key, ' metainfo: ', obj.metaInfo());
         });
     }
 }
