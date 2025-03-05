@@ -1,5 +1,5 @@
 import useEffectOnce from '@/utils/hooks/use-effect-once';
-import React, { FormEvent, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { getDomain } from 'tldts';
 import classNames from 'classnames';
@@ -12,6 +12,7 @@ const Options = () => {
     const [items, setItems] = useState<string[]>([]);
     const [domainInput, setDomainInput] = useState('');
     const [domainError, setDomainError] = useState('');
+    const [showSysNotifications, setShowSysNotifications] = useState(Preferences.showSysNotifications.value);
 
     useEffectOnce(() => {
         Preferences.initDefaults(new ChromeSyncStorage(), new ChromeLocalStorage())
@@ -20,11 +21,23 @@ const Options = () => {
                     setItems([...result])
                 );
                 setItems([...Preferences.domainExclusions.value]);
+                setShowSysNotifications(Preferences.showSysNotifications.value);
             })
             .catch((error: unknown) => console.error('Failed to initialize preferences:', error));
 
-        return () => Preferences.domainExclusions.removeListener('exclude-options');
+        return () => {
+            Preferences.domainExclusions.removeListener('exclude-options');
+            Preferences.showSysNotifications.removeListener('show-sys-notifications-options');
+        };
     });
+
+    useEffect(() => {
+        Preferences.showSysNotifications.addListener('show-sys-notifications-options', (result: boolean) =>
+            setShowSysNotifications(result)
+        );
+
+        return () => Preferences.showSysNotifications.removeListener('show-sys-notifications-options');
+    }, []);
 
     const addItem = () => {
         const parsedDomain = getDomain(domainInput);
@@ -49,6 +62,12 @@ const Options = () => {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         addItem();
+    };
+
+    const handleSysNotificationsToggle = () => {
+        const newValue = !showSysNotifications;
+        setShowSysNotifications(newValue);
+        Preferences.showSysNotifications.value = newValue;
     };
 
     return (
@@ -94,10 +113,13 @@ const Options = () => {
                 <div className={styles.settingsColumn}>
                     <h2 className={styles.columnTitle}>Other Settings</h2>
                     <div className={styles.settingsContainer}>
-                        <p>TODO</p>
                         <label className={styles.toggleLabel}>
-                            <span>Enable Feature XYZ</span>
-                            <input type="checkbox" />
+                            <span>Enable System Notifications</span>
+                            <input
+                                type="checkbox"
+                                checked={showSysNotifications}
+                                onChange={handleSysNotificationsToggle}
+                            />
                             <span className={styles.toggleSlider} />
                         </label>
                     </div>
