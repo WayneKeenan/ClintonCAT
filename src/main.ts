@@ -43,12 +43,14 @@ export class Main {
 
         // Example: show a notification about the found pages
         // NOTE: Requires "notifications" permission in your manifest.json
-        chrome.notifications.create({
-            type: 'basic',
-            iconUrl: 'icon48.png', // TODO: Use a proper icon
-            title: 'CAT Pages Found',
-            message: `Found ${pages.totalPagesFound.toString()} page(s).`,
-        });
+        if (Preferences.showSysNotifications.value && pages.totalPagesFound > 0) {
+            chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icon48.png', // TODO: Use a proper icon
+                title: 'CAT Pages Found',
+                message: `Found ${pages.totalPagesFound.toString()} page(s).`,
+            });
+        }
     }
 
     /**
