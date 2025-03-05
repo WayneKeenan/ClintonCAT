@@ -11,6 +11,9 @@ class Preferences {
     static isEnabled = new ObservableValue<boolean>(true);
     static domainExclusions = new ObservableSet<string>();
 
+    static readonly SHOW_SYS_NOTIFICATIONS_KEY = 'show_sys_notifications';
+    static showSysNotifications = new ObservableValue<boolean>(false);
+
     // Injected storage backends  (TODO: do we need both?)
     // Sync is used to share data across browsers if logged in, e.g. plugin settings
     // Local is for 'this' browser only storage and can have more space available, e.g. for the pages db
@@ -36,6 +39,8 @@ class Preferences {
         // Reset callbacks
         this.isEnabled.removeAllListeners();
         this.domainExclusions.removeAllListeners();
+        this.showSysNotifications.removeAllListeners();
+
         // Set up default callbacks
         this.isEnabled.addListener(this.IS_ENABLED_KEY, (result: boolean) => {
             void this.setPreference(Preferences.IS_ENABLED_KEY, result);
@@ -43,6 +48,10 @@ class Preferences {
 
         this.domainExclusions.addListener(this.DOMAIN_EXCLUSIONS_KEY, (result: string[]) => {
             void this.setPreference(Preferences.DOMAIN_EXCLUSIONS_KEY, result);
+        });
+
+        this.showSysNotifications.addListener(this.SHOW_SYS_NOTIFICATIONS_KEY, (result: boolean) => {
+            void this.setPreference(Preferences.SHOW_SYS_NOTIFICATIONS_KEY, result);
         });
 
         // Attempt preference retrieval
@@ -60,12 +69,19 @@ class Preferences {
         } else {
             this.domainExclusions.value = Preferences.DEFAULT_DOMAIN_EXCLUSIONS;
         }
+        const rawShowSysNotifications = await this.getPreference(this.SHOW_SYS_NOTIFICATIONS_KEY);
+        if (typeof rawShowSysNotifications === 'boolean') {
+            this.showSysNotifications.value = rawShowSysNotifications;
+        } else {
+            this.showSysNotifications.value = false;
+        }
     }
 
     public static dump(): void {
         const msg: string =
             `IsEnabled = ${Preferences.isEnabled.toString()}, ` +
-            `DomainExclusions = ${Preferences.domainExclusions.toString()}`;
+            `DomainExclusions = ${Preferences.domainExclusions.toString()}` +
+            `ShowSysNotifications = ${Preferences.showSysNotifications.toString()}`;
         console.log(msg);
     }
 
