@@ -6,6 +6,24 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import * as styles from './Popup.module.css';
 
+const getActiveTabDomain = (): Promise<string | undefined> => {
+    return new Promise((resolve, reject) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const tab = tabs[0];
+            if (!tab.url) {
+                return reject(new Error('No active tab found or the active tab has no URL.'));
+            }
+
+            try {
+                const domain = new URL(tab.url).hostname;
+                resolve(domain);
+            } catch {
+                reject(new Error('Failed to extract domain from the URL.'));
+            }
+        });
+    });
+};
+
 const Popup = () => {
     const [isEnabled, setIsEnabled] = useState(false);
 
@@ -29,13 +47,33 @@ const Popup = () => {
     };
 
     const allowThisSite = () => {
-        const domain = window.location.hostname; // TODO: gets extension name instead of open tab domain
-        Preferences.domainExclusions.delete(domain);
+        getActiveTabDomain()
+            .then((domain) => {
+                if (domain) {
+                    Preferences.domainExclusions.delete(domain);
+                }
+            })
+            .catch((error: unknown) => {
+                if (error instanceof Error) {
+                    console.error('Failed to allow the site:', error.message);
+                    throw error;
+                }
+            });
     };
 
     const excludeThisSite = () => {
-        const domain = window.location.hostname; // TODO: gets extension name instead of open tab domain
-        Preferences.domainExclusions.add(domain);
+        getActiveTabDomain()
+            .then((domain) => {
+                if (domain) {
+                    Preferences.domainExclusions.add(domain);
+                }
+            })
+            .catch((error: unknown) => {
+                if (error instanceof Error) {
+                    console.error('Failed to exclude the site:', error.message);
+                    throw error;
+                }
+            });
     };
 
     const openOptionsPage = () => {
