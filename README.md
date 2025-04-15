@@ -30,12 +30,12 @@ As this extension is currently under development it's necessary to build and ins
 
 # Development
 
-## Checkout and build the extension:
+## Clone and build the extension:
 
 ### Chrome & Firefox
 
 ```shell
-git checkout git@github.com:WayneKeenan/ClintonCAT.git
+git clone https://github.com/WayneKeenan/ClintonCAT.git
 cd ClintonCAT
 npm install
 npm run build:chromium    # Chrome
