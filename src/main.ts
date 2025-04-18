@@ -174,7 +174,6 @@ export class Main {
         _sender: chrome.runtime.MessageSender,
         _sendResponse: VoidFunction
     ): void {
-        console.log('message: ' + JSON.stringify(message));
         // Diabling this currently doesn't do squat (and will confuse others besides me)
         // messageHandler(message, _sender, _sendResponse);
 

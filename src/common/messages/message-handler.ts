@@ -36,7 +36,6 @@ const handlers = {
 function messageHandler(request: unknown, _sender: MessageSender, sendResponse: (response?: unknown) => void) {
     const { type, payload } = request as RuntimeMessage<keyof MessageMap>;
     const handler = handlers[type] as Maybe<MessageHandler<typeof type>>;
-    console.log('payload: ' + payload, '\ntype: ' + type, '\nhandler:' + handler);
 
     if (!handler) return console.warn(`No handler registered for message type: ${type}`);
 
