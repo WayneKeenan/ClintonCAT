@@ -50,28 +50,36 @@ export class Main {
                 type: 'basic',
                 iconUrl: chrome.runtime.getURL('alert.png'),
                 title: 'CAT Pages Found',
-                message: `Found ${totalPages.toString()} page${totalPages > 1 ? "s": ""}.`,
+                message: `Found ${totalPages.toString()} page${totalPages > 1 ? 's' : ''}.`,
             });
             // Displays a popup on webpage your visiting instead of OS notification
             // Example: show a warning to users on the site is known for anti-consumer behaviors
             // NOTE: Requires "scripting" & "activeTab" permission in your manifest.json
-            chrome.tabs.query({ active: true, currentWindow: true }).then(output => {
-                return output[0]
-            }).then((win: any) => {
-                chrome.storage.local.set({results: totalPages.toString()})
-                chrome.scripting.executeScript({
-                    target: { tabId: win.id },
-                    func: () => {
-                        chrome.storage.local.get("results").then(pair => {
-                            document.body.innerHTML += "<div id='CRW' style='position: fixed; top: 0px; right: 0px; background: black; color: white; z-index: 1000000; text-align: center; max-width: 50vw; padding: 4vmin; border-radius: 3vmin'>\
+            chrome.tabs
+                .query({ active: true, currentWindow: true })
+                .then((output) => {
+                    return output[0];
+                })
+                .then((win: any) => {
+                    chrome.storage.local.set({ results: totalPages.toString() });
+                    chrome.scripting.executeScript({
+                        target: { tabId: win.id },
+                        func: () => {
+                            chrome.storage.local.get('results').then((pair) => {
+                                document.body.innerHTML +=
+                                    "<div id='CRW' style='position: fixed; top: 0px; right: 0px; background: black; color: white; z-index: 1000000; text-align: center; max-width: 50vw; padding: 4vmin; border-radius: 3vmin'>\
                             <button style='position:absolute; top: 1vmin; right: 1vmin; background: inherit; color: inherit; font-size: 1.3em' onclick=document.getElementById('CRW').remove()> X </button>\
                             <h1 style='position: relative; top: 2vmin; color: inherit; font-size: 2em; margin-bottom: 0.8em'> CAT Pages Found </h1>\
-                            <p style='color: inherit; font-size: 1.5em; margin: 0'> Found " + pair.results + " page" + (pair.results > 1 ? "s": "") + " </p>\
-                            </div>\n";
-                        });
-                    }
+                            <p style='color: inherit; font-size: 1.5em; margin: 0'> Found " +
+                                    pair.results +
+                                    ' page' +
+                                    (pair.results > 1 ? 's' : '') +
+                                    ' </p>\
+                            </div>\n';
+                            });
+                        },
+                    });
                 });
-            });
         } else {
             // Revert badge text back to "on" or "off" as set by indicateStatus
             this.indicateStatus();
@@ -166,7 +174,7 @@ export class Main {
         _sender: chrome.runtime.MessageSender,
         _sendResponse: VoidFunction
     ): void {
-        console.log("message: " + JSON.stringify(message));
+        console.log('message: ' + JSON.stringify(message));
         // Diabling this currently doesn't do squat (and will confuse others besides me)
         // messageHandler(message, _sender, _sendResponse);
 
