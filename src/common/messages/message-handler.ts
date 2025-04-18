@@ -20,9 +20,17 @@ const notifyHandler: MessageHandler<'notify'> = (payload) =>
         resolve();
     });
 
+const notifyPage: MessageHandler<'page'> = (payload) =>
+    // TODO: when webpage notifications get added add them here! (implementation exists on main.ts)
+    // Base types have been added to reduce TS scema conflicts
+    new Promise((resolve) => {
+        resolve();
+    });
+
 const handlers = {
     log: logHandler,
     notify: notifyHandler,
+    page: notifyPage,
 } satisfies { [K in keyof MessageMap]: MessageHandler<K> };
 
 function messageHandler(request: unknown, _sender: MessageSender, sendResponse: (response?: unknown) => void) {
