@@ -3,12 +3,14 @@
  * ResponsePayload is wrapped in a Promise because handlers can be async.
  *
  * Examples
- *  - 'notify': request { title: string, message: string }, response Promise<void>
  *  - 'log': request { title: string, message: string }, response Promise<void>
+ *  - 'notify': request { title: string, message: string }, response Promise<void>
+ *  - 'page': request { title: string, message: string }, response Promise<void>
  */
 export interface MessageMap {
     log: [{ message: string }];
     notify: [{ title: string; message: string }];
+    page: [{ title: string; message: string }];
 }
 
 // Type helpers to extract request/response from the map:
