@@ -14,7 +14,9 @@ export interface MessageMap {
 }
 
 // Type helpers to extract request/response from the map:
-export type MessageRequest<K extends keyof MessageMap> = MessageMap[K] extends [infer Req, ...unknown[]] ? Req : never;
+export type MessageRequest<K extends keyof MessageMap> = MessageMap[K] extends [...unknown[]]
+    ? MessageMap[K][0]
+    : never;
 export type MessageResponse<K extends keyof MessageMap> = MessageMap[K] extends [unknown, infer Res]
     ? Promise<Res>
     : Promise<void>;
