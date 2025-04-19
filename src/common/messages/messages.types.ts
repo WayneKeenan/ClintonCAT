@@ -10,7 +10,7 @@
 export interface MessageMap {
     log: [{ message: string }];
     notify: [{ title: string; message: string }];
-    page: [{ title: string; message: string }];
+    page: [{ title: string; message: string; tabId: number }];
 }
 
 // Type helpers to extract request/response from the map:

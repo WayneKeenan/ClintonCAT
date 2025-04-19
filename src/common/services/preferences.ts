@@ -2,6 +2,7 @@ import ObservableSet from '@/common/observables/observable-set';
 import ObservableValue from '@/common/observables/observable-value';
 import { IStorageBackend } from '@/storage/istorage-backend';
 import { Nullable } from '@/utils/types';
+import { MessageMap } from '../messages/messages.types';
 
 class Preferences {
     static readonly IS_ENABLED_KEY = 'is_enabled';
@@ -10,6 +11,7 @@ class Preferences {
 
     static isEnabled = new ObservableValue<boolean>(true);
     static domainExclusions = new ObservableSet<string>();
+    static notificationPreference = new ObservableValue<keyof MessageMap>('page');
 
     // Injected storage backends  (TODO: do we need both?)
     // Sync is used to share data across browsers if logged in, e.g. plugin settings
@@ -64,8 +66,9 @@ class Preferences {
 
     public static dump(): void {
         const msg: string =
-            `IsEnabled = ${Preferences.isEnabled.toString()}, ` +
-            `DomainExclusions = ${Preferences.domainExclusions.toString()}`;
+            `IsEnabled = ${Preferences.isEnabled.toString()}\n` +
+            `DomainExclusions = ${Preferences.domainExclusions.toString()}\n` +
+            `NotificationPreference = ${Preferences.notificationPreference.toString()}`;
         console.log(msg);
     }
 

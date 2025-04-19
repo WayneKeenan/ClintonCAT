@@ -94,6 +94,15 @@ const Options = () => {
                 <div className={styles.settingsColumn}>
                     <h2 className={styles.columnTitle}>Other Settings</h2>
                     <div className={styles.settingsContainer}>
+                        <p> Prefered Notification </p>
+                        <label htmlFor="logNotif"> Log Notification </label>
+                        <input id="logNotif" type="radio" name="notifPref" value="log"></input>
+                        <br></br>
+                        <label htmlFor="notifyNotif"> Operating System Notification </label>
+                        <input id="notifyNotif" type="radio" name="notifPref" value="notify"></input>
+                        <br></br>
+                        <label htmlFor="pageNotif"> Webpage Notification </label>
+                        <input id="pageNotif" type="radio" name="notifPref" value="page"></input>
                         <p>TODO</p>
                         <label className={styles.toggleLabel}>
                             <span>Enable Feature XYZ</span>

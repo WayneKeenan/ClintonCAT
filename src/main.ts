@@ -13,6 +13,8 @@ export interface IMainMessage {
     badgeText: string;
     domain: string;
     url: string;
+    type: string;
+    payload: { title?: string; message: string; tabId?: number };
 }
 
 export class Main {
@@ -37,58 +39,57 @@ export class Main {
     /**
      * Display how many pages were found by updating the badge text
      */
-    indicateCATPages(pages: CATWikiPageSearchResults): void {
-        const totalPages = pages.totalPagesFound;
-        console.log(pages);
+    // indicateCATPages(pages: CATWikiPageSearchResults): void {
+    //     const totalPages = pages.totalPagesFound;
 
-        if (totalPages > 0) {
-            // Update badge text with total pages found
-            void chrome.action.setBadgeText({ text: pages.totalPagesFound.toString() });
-            // Example: show a notification about the found pages
-            // NOTE: Requires "notifications" permission in your manifest.json
-            let plurality = totalPages > 1 ? 's' : '';
-            chrome.notifications.create({
-                type: 'basic',
-                iconUrl: chrome.runtime.getURL('alert.png'),
-                title: `CAT Page${plurality} Found`,
-                message: `Found ${totalPages.toString()} page${plurality}.`,
-            });
-            // Displays a popup on webpage your visiting instead of OS notification
-            // Example: show a warning to users on the site is known for anti-consumer behaviors
-            // NOTE: Requires "scripting" & "activeTab" permission in your manifest.json
-            chrome.tabs
-                .query({ active: true, currentWindow: true })
-                .then((output) => {
-                    return output[0];
-                })
-                .then((win: any) => {
-                    chrome.storage.local.set({ results: totalPages.toString() });
-                    chrome.scripting.executeScript({
-                        target: { tabId: win.id },
-                        func: () => {
-                            chrome.storage.local.get('results').then((pair) => {
-                                let plurality = pair.results > 1 ? 's' : '';
-                                document.body.innerHTML +=
-                                    "<div id='CRW' style='position: fixed; top: 0px; right: 0px; background: black; color: white; font-family: Roboto; z-index: 1000000; text-align: center; max-width: 50vw; padding: 4vmin; border-radius: 3vmin; line-height: 1;'>\
-                            <button style='position:absolute; top: 1vmin; right: 1vmin; background: inherit; color: inherit; font-size: 1.3em' onclick=document.getElementById('CRW').remove()> X </button>\
-                            <h1 style='position: relative; top: 2vmin; color: inherit; font-size: 2em; font-weight: 600; margin-bottom: 0.8em'> CAT Page" +
-                                    plurality +
-                                    " Found </h1>\
-                            <p style='color: inherit; font-size: 1.5em; margin: 0'> Found " +
-                                    pair.results +
-                                    ' page' +
-                                    plurality +
-                                    ' </p>\
-                            </div>\n';
-                            });
-                        },
-                    });
-                });
-        } else {
-            // Revert badge text back to "on" or "off" as set by indicateStatus
-            this.indicateStatus();
-        }
-    }
+    //     if (totalPages > 0) {
+    //         // Update badge text with total pages found
+    //         void chrome.action.setBadgeText({ text: pages.totalPagesFound.toString() });
+    //         // Example: show a notification about the found pages
+    //         // NOTE: Requires "notifications" permission in your manifest.json
+    //         let plurality = totalPages > 1 ? 's' : '';
+    //         chrome.notifications.create({
+    //             type: 'basic',
+    //             iconUrl: chrome.runtime.getURL('alert.png'),
+    //             title: `CAT Page${plurality} Found`,
+    //             message: `Found ${totalPages.toString()} page${plurality}.`,
+    //         });
+    //         // Displays a popup on webpage your visiting instead of OS notification
+    //         // Example: show a warning to users on the site is known for anti-consumer behaviors
+    //         // NOTE: Requires "scripting" & "activeTab" permission in your manifest.json
+    //         chrome.tabs
+    //             .query({ active: true, currentWindow: true })
+    //             .then((output) => {
+    //                 return output[0];
+    //             })
+    //             .then((win: any) => {
+    //                 chrome.storage.local.set({ results: totalPages.toString() });
+    //                 chrome.scripting.executeScript({
+    //                     target: { tabId: win.id },
+    //                     func: () => {
+    //                         chrome.storage.local.get('results').then((pair) => {
+    //                             let plurality = pair.results > 1 ? 's' : '';
+    //                             document.body.innerHTML +=
+    //                                 "<div id='CRW' style='position: fixed; top: 0px; right: 0px; background: black; color: white; font-family: Roboto; z-index: 1000000; text-align: center; max-width: 50vw; padding: 4vmin; border-radius: 3vmin; line-height: 1;'>\
+    //                         <button style='position:absolute; top: 1vmin; right: 1vmin; background: inherit; color: inherit; font-size: 1.3em' onclick=document.getElementById('CRW').remove()> X </button>\
+    //                         <h1 style='position: relative; top: 2vmin; color: inherit; font-size: 2em; font-weight: 600; margin-bottom: 0.8em'> CAT Page" +
+    //                                 plurality +
+    //                                 " Found </h1>\
+    //                         <p style='color: inherit; font-size: 1.5em; margin: 0'> Found " +
+    //                                 pair.results +
+    //                                 ' page' +
+    //                                 plurality +
+    //                                 ' </p>\
+    //                         </div>\n';
+    //                         });
+    //                     },
+    //                 });
+    //             });
+    //     } else {
+    //         // Revert badge text back to "on" or "off" as set by indicateStatus
+    //         this.indicateStatus();
+    //     }
+    // }
 
     notify(message: string) {
         const notificationId = 'abc123';
@@ -131,7 +132,11 @@ export class Main {
      * Scans the domain and in-page contents, merges results,
      * and indicates how many CAT pages were found.
      */
-    async onPageLoaded(unparsedDomain: string, url: string): Promise<void> {
+    async onPageLoaded(
+        unparsedDomain: string,
+        url: string,
+        callback: (result: CATWikiPageSearchResults) => void
+    ): Promise<void> {
         if (!parse(unparsedDomain, { allowPrivateDomains: true }).domain) {
             throw new Error('onPageLoaded received an invalid url');
         }
@@ -151,7 +156,7 @@ export class Main {
             url: url,
             pagesDb: this.pagesDatabase,
             dom: new DOMMessenger(),
-            notify: (results) => this.indicateCATPages(results),
+            notify: (results: CATWikiPageSearchResults) => callback(results),
         };
 
         await this.contentScanner.checkPageContents(scannerParameters);
@@ -179,19 +184,31 @@ export class Main {
         _sendResponse: VoidFunction
     ): void {
         // Diabling this currently doesn't do squat (and will confuse others besides me)
-        // messageHandler(message, _sender, _sendResponse);
-
         // TODO: refactor this to use messageHandler (with types)
         void (async () => {
             await Preferences.initDefaults(new ChromeSyncStorage(), new ChromeLocalStorage());
             Preferences.dump();
 
-            if (message.badgeText) {
-                this.onBadgeTextUpdate(message.badgeText);
-            } else if (!Preferences.isEnabled.value) {
+            if (message.domain && Preferences.isEnabled.value) {
+                await this.onPageLoaded(message.domain, message.url, (results: CATWikiPageSearchResults) => {
+                    const entryCount = results.totalPagesFound;
+                    if (entryCount > 0) {
+                        void chrome.action.setBadgeText({ text: entryCount.toString() });
+                        const plurality = entryCount > 1 ? 's' : '';
+                        message.type = Preferences.notificationPreference.value;
+                        message.payload = {
+                            title: `Cat Page${plurality} Found`,
+                            message: `Found ${entryCount.toString()} page${plurality}.`,
+                            tabId: _sender.tab?.id,
+                        };
+                        messageHandler(message, _sender, _sendResponse);
+                    }
+                });
+            } else if (message.type) {
+                console.log(message);
+                messageHandler(message, _sender, _sendResponse);
+            } else {
                 this.indicateStatus();
-            } else if (message.domain) {
-                await this.onPageLoaded(message.domain, message.url);
             }
         })();
     }

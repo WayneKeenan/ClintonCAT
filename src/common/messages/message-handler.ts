@@ -21,9 +21,25 @@ const notifyHandler: MessageHandler<'notify'> = (payload) =>
     });
 
 const notifyPage: MessageHandler<'page'> = (payload) =>
-    // TODO: when webpage notifications get added add them here! (implementation exists on main.ts)
-    // Base types have been added to reduce TS scema conflicts
     new Promise((resolve) => {
+        chrome.storage.local.set({ title: payload.title, message: payload.message });
+        chrome.scripting.executeScript({
+            target: { tabId: payload.tabId },
+            func: () => {
+                chrome.storage.local.get(['title', 'message']).then((pair) => {
+                    document.body.innerHTML +=
+                        "<div id='CRW' style='position: fixed; top: 0px; right: 0px; background: black; color: white; font-family: Roboto; z-index: 1000000; text-align: center; max-width: 50vw; padding: 4vmin; border-radius: 3vmin; line-height: 1;'>\
+                            <button style='position:absolute; top: 1vmin; right: 1vmin; background: inherit; color: inherit; font-size: 1.3em' onclick=document.getElementById('CRW').remove()> X </button>\
+                            <h1 style='position: relative; top: 2vmin; color: inherit; font-size: 2em; font-weight: 600; margin-bottom: 0.8em'>" +
+                        String(pair.title) +
+                        "</h1>\
+                            <p style='color: inherit; font-size: 1.5em; margin: 0'>" +
+                        String(pair.message) +
+                        ' </p>\
+                            </div>\n';
+                });
+            },
+        });
         resolve();
     });
 
@@ -33,6 +49,9 @@ const handlers = {
     page: notifyPage,
 } satisfies { [K in keyof MessageMap]: MessageHandler<K> };
 
+/**
+ * Display how many pages were found by updating the badge text
+ */
 function messageHandler(request: unknown, _sender: MessageSender, sendResponse: (response?: unknown) => void) {
     const { type, payload } = request as RuntimeMessage<keyof MessageMap>;
     const handler = handlers[type] as Maybe<MessageHandler<typeof type>>;

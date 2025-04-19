@@ -49,9 +49,18 @@ const Popup = () => {
     };
 
     const testNotification = () => {
-        sendMessage('notify', { title: 'Test Notification', message: 'This is a test notification' }).catch(
-            console.error
-        );
+        chrome.tabs
+            .query({ active: true, currentWindow: true })
+            .then((tabs) => {
+                return tabs[0];
+            })
+            .then((tab) => {
+                sendMessage(Preferences.notificationPreference.value, {
+                    title: 'Test Notification',
+                    message: 'This is a test notification',
+                    tabId: tab.id,
+                }).catch(console.error);
+            });
     };
 
     const allowThisSite = () => {
