@@ -183,8 +183,6 @@ export class Main {
         _sender: chrome.runtime.MessageSender,
         _sendResponse: VoidFunction
     ): void {
-        // Diabling this currently doesn't do squat (and will confuse others besides me)
-        // TODO: refactor this to use messageHandler (with types)
         void (async () => {
             await Preferences.initDefaults(new ChromeSyncStorage(), new ChromeLocalStorage());
             Preferences.dump();
@@ -204,8 +202,7 @@ export class Main {
                         messageHandler(message, _sender, _sendResponse);
                     }
                 });
-            } else if (message.type) {
-                console.log(message);
+            } else if (message.type && Preferences.isEnabled.value) {
                 messageHandler(message, _sender, _sendResponse);
             } else {
                 this.indicateStatus();
