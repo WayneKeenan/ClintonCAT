@@ -8,6 +8,7 @@ class Preferences {
     static readonly IS_ENABLED_KEY = 'is_enabled';
     static readonly DOMAIN_EXCLUSIONS_KEY = 'domain_exclusions';
     static readonly DEFAULT_DOMAIN_EXCLUSIONS = ['rossmanngroup.com'];
+    static readonly NOTIFICATION_PREFERENCE = 'notification_preference';
 
     static isEnabled = new ObservableValue<boolean>(true);
     static domainExclusions = new ObservableSet<string>();
@@ -47,6 +48,10 @@ class Preferences {
             void this.setPreference(Preferences.DOMAIN_EXCLUSIONS_KEY, result);
         });
 
+        this.notificationPreference.addListener(this.NOTIFICATION_PREFERENCE, (result: keyof MessageMap) => {
+            void this.setPreference(Preferences.NOTIFICATION_PREFERENCE, result);
+        });
+
         // Attempt preference retrieval
         const rawIsEnabled = await this.getPreference(this.IS_ENABLED_KEY);
         if (typeof rawIsEnabled === 'boolean') {
@@ -61,6 +66,12 @@ class Preferences {
             );
         } else {
             this.domainExclusions.value = Preferences.DEFAULT_DOMAIN_EXCLUSIONS;
+        }
+        const rawNotificationPreference = await this.getPreference(this.NOTIFICATION_PREFERENCE);
+        if (typeof rawNotificationPreference === 'string') {
+            this.notificationPreference.value = rawNotificationPreference as keyof MessageMap;
+        } else {
+            this.notificationPreference.value = 'page';
         }
     }
 

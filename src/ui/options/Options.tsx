@@ -1,5 +1,5 @@
 import useEffectOnce from '@/utils/hooks/use-effect-once';
-import React, { FormEvent, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { getDomain } from 'tldts';
 import classNames from 'classnames';
@@ -7,6 +7,7 @@ import Preferences from '@/common/services/preferences';
 import ChromeLocalStorage from '@/storage/chrome/chrome-local-storage';
 import ChromeSyncStorage from '@/storage/chrome/chrome-sync-storage';
 import * as styles from './Options.module.css';
+import { MessageMap } from '@/common/messages/messages.types';
 
 const Options = () => {
     const [items, setItems] = useState<string[]>([]);
@@ -49,6 +50,11 @@ const Options = () => {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         addItem();
+    };
+
+    const notifSelect = (event: ChangeEvent<HTMLInputElement>) => {
+        const newPref = event.target.value;
+        Preferences.notificationPreference.value = newPref as keyof MessageMap;
     };
 
     return (
@@ -96,13 +102,31 @@ const Options = () => {
                     <div className={styles.settingsContainer}>
                         <p> Prefered Notification </p>
                         <label htmlFor="logNotif"> Log Notification </label>
-                        <input id="logNotif" type="radio" name="notifPref" value="log"></input>
+                        <input
+                            id="logNotif"
+                            type="radio"
+                            name="notifPref"
+                            value="log"
+                            defaultChecked={Preferences.notificationPreference.value === 'log'}
+                            onChange={notifSelect}></input>
                         <br></br>
                         <label htmlFor="notifyNotif"> Operating System Notification </label>
-                        <input id="notifyNotif" type="radio" name="notifPref" value="notify"></input>
+                        <input
+                            id="notifyNotif"
+                            type="radio"
+                            name="notifPref"
+                            value="notify"
+                            defaultChecked={Preferences.notificationPreference.value === 'notify'}
+                            onChange={notifSelect}></input>
                         <br></br>
                         <label htmlFor="pageNotif"> Webpage Notification </label>
-                        <input id="pageNotif" type="radio" name="notifPref" value="page"></input>
+                        <input
+                            id="pageNotif"
+                            type="radio"
+                            name="notifPref"
+                            value="page"
+                            defaultChecked={Preferences.notificationPreference.value === 'page'}
+                            onChange={notifSelect}></input>
                         <p>TODO</p>
                         <label className={styles.toggleLabel}>
                             <span>Enable Feature XYZ</span>
