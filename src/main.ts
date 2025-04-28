@@ -36,60 +36,7 @@ export class Main {
         });
     }
 
-    /**
-     * Display how many pages were found by updating the badge text
-     */
-    // indicateCATPages(pages: CATWikiPageSearchResults): void {
-    //     const totalPages = pages.totalPagesFound;
-
-    //     if (totalPages > 0) {
-    //         // Update badge text with total pages found
-    //         void chrome.action.setBadgeText({ text: pages.totalPagesFound.toString() });
-    //         // Example: show a notification about the found pages
-    //         // NOTE: Requires "notifications" permission in your manifest.json
-    //         let plurality = totalPages > 1 ? 's' : '';
-    //         chrome.notifications.create({
-    //             type: 'basic',
-    //             iconUrl: chrome.runtime.getURL('alert.png'),
-    //             title: `CAT Page${plurality} Found`,
-    //             message: `Found ${totalPages.toString()} page${plurality}.`,
-    //         });
-    //         // Displays a popup on webpage your visiting instead of OS notification
-    //         // Example: show a warning to users on the site is known for anti-consumer behaviors
-    //         // NOTE: Requires "scripting" & "activeTab" permission in your manifest.json
-    //         chrome.tabs
-    //             .query({ active: true, currentWindow: true })
-    //             .then((output) => {
-    //                 return output[0];
-    //             })
-    //             .then((win: any) => {
-    //                 chrome.storage.local.set({ results: totalPages.toString() });
-    //                 chrome.scripting.executeScript({
-    //                     target: { tabId: win.id },
-    //                     func: () => {
-    //                         chrome.storage.local.get('results').then((pair) => {
-    //                             let plurality = pair.results > 1 ? 's' : '';
-    //                             document.body.innerHTML +=
-    //                                 "<div id='CRW' style='position: fixed; top: 0px; right: 0px; background: black; color: white; font-family: Roboto; z-index: 1000000; text-align: center; max-width: 50vw; padding: 4vmin; border-radius: 3vmin; line-height: 1;'>\
-    //                         <button style='position:absolute; top: 1vmin; right: 1vmin; background: inherit; color: inherit; font-size: 1.3em' onclick=document.getElementById('CRW').remove()> X </button>\
-    //                         <h1 style='position: relative; top: 2vmin; color: inherit; font-size: 2em; font-weight: 600; margin-bottom: 0.8em'> CAT Page" +
-    //                                 plurality +
-    //                                 " Found </h1>\
-    //                         <p style='color: inherit; font-size: 1.5em; margin: 0'> Found " +
-    //                                 pair.results +
-    //                                 ' page' +
-    //                                 plurality +
-    //                                 ' </p>\
-    //                         </div>\n';
-    //                         });
-    //                     },
-    //                 });
-    //             });
-    //     } else {
-    //         // Revert badge text back to "on" or "off" as set by indicateStatus
-    //         this.indicateStatus();
-    //     }
-    // }
+    // indicateCATPages has been refactored into message-handler.ts
 
     notify(message: string) {
         const notificationId = 'abc123';
@@ -204,6 +151,7 @@ export class Main {
                 });
             } else if (message.type && Preferences.isEnabled.value) {
                 messageHandler(message, _sender, _sendResponse);
+                this.indicateStatus();
             } else {
                 this.indicateStatus();
             }
