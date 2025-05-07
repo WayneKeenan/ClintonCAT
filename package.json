@@ -70,6 +70,7 @@
         "webpack-dev-server": "^5.2.0"
     },
     "dependencies": {
+        "@types/webextension-polyfill": "^0.12.3",
         "classnames": "^2.5.1",
         "tldts": "^6.1.79"
     }
