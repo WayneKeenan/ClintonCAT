@@ -1,30 +1,26 @@
-import { IContentScannerPlugin, IScanParameters } from '@/common/services/content-scanner.types';
-import { CATWikiPageSearchResults } from '@/database';
+import { IScanParameters } from '@/common/services/content-scanner.types';
+import { BaseDomainScanner } from './base-domain-scanner';
 
-class DefaultScanner implements IContentScannerPlugin {
+class DefaultScanner extends BaseDomainScanner {
     metaInfo(): string {
         return 'default scanner';
     }
 
     canScanContent(_params: IScanParameters): boolean {
-        // skipped in plugin search, explicitly called if no other plugins can handle the params
         return false;
     }
 
+    protected getDomainKeyForSearch(params: IScanParameters): string {
+        return params.mainDomain;
+    }
+
     async scan(params: IScanParameters): Promise<boolean> {
-        console.log(`Default Scanner: ${params.domain} - ${params.mainDomain}`);
-        const results = new CATWikiPageSearchResults();
-        console.log(results);
-        const domainResults = params.pagesDb.getPagesForDomain(params.mainDomain);
-        results.addPageEntries(domainResults.pageEntries);
+        const foundPagesViaBaseScan = await super.scan(params);
 
-        // TODO:
-        // const pText = await params.dom.querySelectorAllAsText('p');
-        // const pageResults = params.pagesDb.findConsecutiveWords(pText);
-        // results.addPageEntries(pageResults.pageEntries);
+        console.log(`Default Scanner: Base scan found pages: ${String(foundPagesViaBaseScan)}`);
 
-        params.notify(results);
-        return Promise.resolve(true);
+        // TODO: More default scanning logic
+        return true;
     }
 }
 

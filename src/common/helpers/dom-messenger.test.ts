@@ -269,5 +269,36 @@ describe('DOMMessenger', () => {
             expect(parent?.innerHTML).toContain('<span');
             expect(parent?.innerHTML).toContain('<strong>Bold</strong>');
         });
+        test('handles DOM_SHOW_IN_PAGE_NOTIFICATION correctly', () => {
+            const sendResponse = jest.fn();
+            const testMessage = 'Hello from test!';
+            listener(
+                { action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION, message: testMessage },
+                {} as chrome.runtime.MessageSender,
+                sendResponse
+            );
+
+            const container = document.getElementById('clint-cat-notification-container');
+            expect(container).not.toBeNull();
+            expect(container?.style.position).toBe('fixed');
+            expect(container?.children.length).toBeGreaterThan(0);
+            const notificationElement = container?.children[0] as HTMLElement;
+            expect(notificationElement).not.toBeNull();
+            expect(notificationElement.textContent).toContain(testMessage);
+            expect(notificationElement.childNodes[0].nodeValue).toBe(testMessage);
+            expect(notificationElement.querySelector('button')).not.toBeNull();
+            expect(sendResponse).toHaveBeenCalledWith({ success: true });
+        });
+        test('handles DOM_SHOW_IN_PAGE_NOTIFICATION throws error if message is missing', () => {
+            const sendResponse = jest.fn();
+            expect(() => {
+                listener(
+                    { action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION } as any,
+                    {} as chrome.runtime.MessageSender,
+                    sendResponse
+                );
+            }).toThrow('DOM_SHOW_IN_PAGE_NOTIFICATION requires a message');
+            expect(sendResponse).not.toHaveBeenCalled();
+        });
     });
 });

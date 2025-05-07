@@ -6,9 +6,15 @@
  *  - 'notify': request { title: string, message: string }, response Promise<void>
  *  - 'log': request { title: string, message: string }, response Promise<void>
  */
+import type { Main } from '@/main';
+
 export interface MessageMap {
     log: [{ message: string }];
     notify: [{ title: string; message: string }];
+    pageInfo: [{ domain: string; url: string }];
+}
+export interface MessageHandlerContext {
+    main: Main;
 }
 
 // Type helpers to extract request/response from the map:
@@ -29,4 +35,7 @@ export interface RuntimeMessage<K extends keyof MessageMap> {
  * A function that handles a specific message type.
  * It receives the payload of the message and returns a response.
  */
-export type MessageHandler<K extends keyof MessageMap> = (payload: MessageRequest<K>) => MessageResponse<K>;
+export type MessageHandler<K extends keyof MessageMap> = (
+    payload: MessageRequest<K>,
+    context: MessageHandlerContext
+) => MessageResponse<K>;

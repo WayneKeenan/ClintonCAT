@@ -6,10 +6,14 @@ import { Nullable } from '@/utils/types';
 class Preferences {
     static readonly IS_ENABLED_KEY = 'is_enabled';
     static readonly DOMAIN_EXCLUSIONS_KEY = 'domain_exclusions';
+    static readonly BROWSER_NOTIFICATIONS_ENABLED_KEY = 'browser_notifications_enabled';
+    static readonly PAGE_NOTIFICATIONS_ENABLED_KEY = 'page_notifications_enabled';
     static readonly DEFAULT_DOMAIN_EXCLUSIONS = ['rossmanngroup.com'];
 
     static isEnabled = new ObservableValue<boolean>(true);
     static domainExclusions = new ObservableSet<string>();
+    static browserNotificationsEnabled = new ObservableValue<boolean>(true);
+    static pageNotificationsEnabled = new ObservableValue<boolean>(true);
 
     // Injected storage backends  (TODO: do we need both?)
     // Sync is used to share data across browsers if logged in, e.g. plugin settings
@@ -36,6 +40,9 @@ class Preferences {
         // Reset callbacks
         this.isEnabled.removeAllListeners();
         this.domainExclusions.removeAllListeners();
+        this.browserNotificationsEnabled.removeAllListeners();
+        this.pageNotificationsEnabled.removeAllListeners();
+
         // Set up default callbacks
         this.isEnabled.addListener(this.IS_ENABLED_KEY, (result: boolean) => {
             void this.setPreference(Preferences.IS_ENABLED_KEY, result);
@@ -43,6 +50,14 @@ class Preferences {
 
         this.domainExclusions.addListener(this.DOMAIN_EXCLUSIONS_KEY, (result: string[]) => {
             void this.setPreference(Preferences.DOMAIN_EXCLUSIONS_KEY, result);
+        });
+
+        this.browserNotificationsEnabled.addListener(this.BROWSER_NOTIFICATIONS_ENABLED_KEY, (result: boolean) => {
+            void this.setPreference(Preferences.BROWSER_NOTIFICATIONS_ENABLED_KEY, result);
+        });
+
+        this.pageNotificationsEnabled.addListener(this.PAGE_NOTIFICATIONS_ENABLED_KEY, (result: boolean) => {
+            void this.setPreference(Preferences.PAGE_NOTIFICATIONS_ENABLED_KEY, result);
         });
 
         // Attempt preference retrieval
@@ -60,12 +75,28 @@ class Preferences {
         } else {
             this.domainExclusions.value = Preferences.DEFAULT_DOMAIN_EXCLUSIONS;
         }
+
+        const rawBrowserNotificationsEnabled = await this.getPreference(this.BROWSER_NOTIFICATIONS_ENABLED_KEY);
+        if (typeof rawBrowserNotificationsEnabled === 'boolean') {
+            this.browserNotificationsEnabled.value = rawBrowserNotificationsEnabled;
+        } else {
+            this.browserNotificationsEnabled.value = true;
+        }
+
+        const rawPageNotificationsEnabled = await this.getPreference(this.PAGE_NOTIFICATIONS_ENABLED_KEY);
+        if (typeof rawPageNotificationsEnabled === 'boolean') {
+            this.pageNotificationsEnabled.value = rawPageNotificationsEnabled;
+        } else {
+            this.pageNotificationsEnabled.value = true;
+        }
     }
 
     public static dump(): void {
         const msg: string =
             `IsEnabled = ${Preferences.isEnabled.toString()}, ` +
-            `DomainExclusions = ${Preferences.domainExclusions.toString()}`;
+            `DomainExclusions = ${Preferences.domainExclusions.toString()}, ` +
+            `BrowserNotificationsEnabled = ${Preferences.browserNotificationsEnabled.toString()}, ` +
+            `PageNotificationsEnabled = ${Preferences.pageNotificationsEnabled.toString()}`;
         console.log(msg);
     }
 

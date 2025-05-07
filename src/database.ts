@@ -110,6 +110,16 @@ export class PagesDB {
         return this.fuzzySearch(domain);
     }
 
+    public getPagesForCategory(categoryName: string): CATWikiPageSearchResults {
+        const lowerCategoryName = categoryName.toLowerCase();
+        const results = new CATWikiPageSearchResults();
+        const pageEntries = this.pagesList.filter(
+            (pageEntry) => pageEntry.category.toLowerCase() === lowerCategoryName
+        );
+        results.addPageEntries(pageEntries);
+        return results;
+    }
+
     public simpleSearch(query: string): CATWikiPageSearchResults {
         const lowerQuery = query.toLowerCase();
         const results = new CATWikiPageSearchResults();

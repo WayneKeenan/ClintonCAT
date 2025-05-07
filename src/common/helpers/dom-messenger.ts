@@ -1,5 +1,19 @@
-import { IContentScanMessage, IElementData } from '@/common/services/content-scanner.types';
-import { DOMMessengerAction, IDOMMessengerInterface } from './dom-messenger.types';
+import { IElementData } from '@/common/services/content-scanner.types';
+import { DOMMessengerAction, IDOMMessengerInterface, IShowInPageNotificationPayload } from './dom-messenger.types';
+
+type DOMMessagePayload =
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL; selector: string }
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL_AS_TEXT; selector: string }
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR; selector: string }
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_BY_PARENT_ID; id: string; selector: string }
+    | { action: DOMMessengerAction.DOM_CREATE_ELEMENT; id: string; element: string; html: string }
+    | ({ action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION } & IShowInPageNotificationPayload);
+
+declare global {
+    interface Window {
+        __DOMMessengerListenerRegistered?: boolean;
+    }
+}
 
 class DOMMessenger implements IDOMMessengerInterface {
     public async querySelectorAll(selector: string): Promise<IElementData[]> {
@@ -46,6 +60,14 @@ class DOMMessenger implements IDOMMessengerInterface {
         });
     }
 
+    public async showInPageNotification(message: string): Promise<unknown> {
+        console.log('showInPageNotification: ', message);
+        return await this.sendMessageToCurrentTab({
+            action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION,
+            message: message,
+        });
+    }
+
     // TODO: createElementWithChildSelector ?
     // public async createElementWithChildSelector(
     //     parentId: string,
@@ -82,7 +104,7 @@ class DOMMessenger implements IDOMMessengerInterface {
 
     // ---
 
-    private async sendMessageToCurrentTab(message: IContentScanMessage): Promise<unknown> {
+    private async sendMessageToCurrentTab(message: DOMMessagePayload): Promise<unknown> {
         const tab = await this.getCurrentTab();
 
         if (!tab?.id) {
@@ -126,7 +148,7 @@ class DOMMessenger implements IDOMMessengerInterface {
     }
 
     public static registerMessageListener() {
-        chrome.runtime.onMessage.addListener((message: IContentScanMessage, _sender, sendResponse) => {
+        chrome.runtime.onMessage.addListener((message: DOMMessagePayload, _sender, sendResponse) => {
             switch (message.action) {
                 case DOMMessengerAction.DOM_QUERY_SELECTOR_ALL: {
                     if (!message.selector) {
@@ -188,7 +210,7 @@ class DOMMessenger implements IDOMMessengerInterface {
                         const newElement = document.createElement(message.element);
                         console.log('DOM_CREATE_ELEMENT html: ', message.html);
 
-                        newElement.innerHTML = message.html ?? '';
+                        newElement.innerHTML = message.html;
                         try {
                             parent.appendChild(newElement);
                         } catch (error) {
@@ -198,11 +220,82 @@ class DOMMessenger implements IDOMMessengerInterface {
 
                     break;
                 }
-
+                case DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION: {
+                    if (!message.message) {
+                        throw new Error(`DOM_SHOW_IN_PAGE_NOTIFICATION requires a message`);
+                    }
+                    DOMMessenger.displayNotification(message.message);
+                    sendResponse({ success: true });
+                    break;
+                }
                 default:
                     break;
             }
         });
+    }
+    private static displayNotification(message: string): void {
+        const containerId = 'clint-cat-notification-container';
+        let container = document.getElementById(containerId);
+
+        if (!container) {
+            container = document.createElement('div');
+            container.id = containerId;
+            Object.assign(container.style, {
+                position: 'fixed',
+                top: '10px',
+                right: '10px',
+                zIndex: '2147483647',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                maxWidth: '300px',
+            });
+            document.body.appendChild(container);
+        }
+        const notificationElement = document.createElement('div');
+        notificationElement.appendChild(document.createTextNode(message));
+
+        const baseStyle: Partial<CSSStyleDeclaration> = {
+            padding: '15px',
+            borderRadius: '5px',
+            color: '#fff',
+            backgroundColor: '#4CAF50',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+            opacity: '1',
+            transition: 'opacity 0.5s ease-out',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+        };
+
+        Object.assign(notificationElement.style, baseStyle);
+
+        const closeButton = document.createElement('button');
+        closeButton.textContent = '×';
+        Object.assign(closeButton.style, {
+            marginLeft: '15px',
+            background: 'none',
+            border: 'none',
+            color: 'inherit',
+            fontSize: '20px',
+            cursor: 'pointer',
+            padding: '0',
+            lineHeight: '1',
+        });
+        closeButton.onclick = () => {
+            notificationElement.style.opacity = '0';
+            setTimeout(() => notificationElement.remove(), 500);
+        };
+        notificationElement.appendChild(closeButton);
+
+        container.prepend(notificationElement);
+
+        setTimeout(() => {
+            if (notificationElement.parentElement) {
+                notificationElement.style.opacity = '0';
+                setTimeout(() => notificationElement.remove(), 500);
+            }
+        }, 5000);
     }
 }
 

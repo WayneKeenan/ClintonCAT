@@ -8,6 +8,8 @@ import { CATWikiPageSearchResults, PagesDB } from '@/database';
 import ChromeLocalStorage from '@/storage/chrome/chrome-local-storage';
 import ChromeSyncStorage from '@/storage/chrome/chrome-sync-storage';
 import StorageCache from '@/storage/storage-cache';
+import { IDOMMessengerInterface } from './common/helpers/dom-messenger.types';
+import { MessageHandlerContext } from '@/common/messages/messages.types';
 
 export interface IMainMessage {
     badgeText: string;
@@ -37,34 +39,62 @@ export class Main {
     /**
      * Display how many pages were found by updating the badge text
      */
-    indicateCATPages(pages: CATWikiPageSearchResults): void {
-        // Update badge text with total pages found
-        void chrome.action.setBadgeText({ text: pages.totalPagesFound.toString() });
+    indicateCATPages(pages: CATWikiPageSearchResults, domMessenger: IDOMMessengerInterface): void {
+        const totalPages = pages.totalPagesFound;
         console.log(pages);
 
-        // Example: show a notification about the found pages
-        // NOTE: Requires "notifications" permission in your manifest.json
-        chrome.notifications.create({
-            type: 'basic',
-            iconUrl: chrome.runtime.getURL('alert.png'),
-            title: 'CAT Pages Found',
-            message: `Found ${pages.totalPagesFound.toString()} page(s).`,
-        });
+        if (totalPages > 0) {
+            // Update badge text with total pages found
+            void chrome.action.setBadgeText({ text: pages.totalPagesFound.toString() });
+
+            if (Preferences.browserNotificationsEnabled.value) {
+                // Example: show a notification about the found pages
+                // NOTE: Requires "notifications" permission in your manifest.json
+                chrome.notifications.create({
+                    type: 'basic',
+                    iconUrl: chrome.runtime.getURL('alert.png'),
+                    title: 'CAT Pages Found',
+                    message: `Found ${pages.totalPagesFound.toString()} page(s).`,
+                });
+            }
+            if (Preferences.pageNotificationsEnabled.value) {
+                const message = `Found ${pages.totalPagesFound.toString()} CAT page(s).`;
+                domMessenger
+                    .showInPageNotification(message)
+                    .then(() => console.log('In-page notification shown.'))
+                    .catch((error: unknown) => {
+                        if (error instanceof Error && error.message.includes('Receiving end does not exist')) {
+                            console.warn(
+                                `Failed to send in-page notification (tab might be inactive or closed/navigated away before message was sent): ${error.message}`
+                            );
+                        } else {
+                            console.error('Failed to show in-page notification due to unexpected error:', error);
+                        }
+                    });
+            }
+        } else {
+            // Revert badge text back to "on" or "off" as set by indicateStatus
+            this.indicateStatus();
+        }
     }
 
     notify(message: string) {
-        const notificationId = 'abc123';
+        if (Preferences.browserNotificationsEnabled.value) {
+            const notificationId = 'abc123';
 
-        const options: chrome.notifications.NotificationOptions<true> = {
-            type: 'basic',
-            iconUrl: chrome.runtime.getURL('alert.png'),
-            title: 'Hey',
-            message,
-        };
+            const options: chrome.notifications.NotificationOptions<true> = {
+                type: 'basic',
+                iconUrl: chrome.runtime.getURL('alert.png'),
+                title: 'Hey',
+                message,
+            };
 
-        const callback = (notificationId: string) => console.log('notificationId: ', notificationId);
+            const callback = (notificationId: string) => console.log('notificationId: ', notificationId);
 
-        chrome.notifications.create(notificationId, options, callback);
+            chrome.notifications.create(notificationId, options, callback);
+        } else {
+            console.log('Browser notifications are disabled. Skipping notification.');
+        }
     }
 
     /**
@@ -107,13 +137,14 @@ export class Main {
             return;
         }
 
+        const domMessenger = new DOMMessenger();
         const scannerParameters: IScanParameters = {
             domain: domain.toLowerCase(),
             mainDomain: getDomainWithoutSuffix(unparsedDomain, { allowPrivateDomains: true }) ?? '',
             url: url,
             pagesDb: this.pagesDatabase,
             dom: new DOMMessenger(),
-            notify: (results) => this.indicateCATPages(results),
+            notify: (results) => this.indicateCATPages(results, domMessenger),
         };
 
         await this.contentScanner.checkPageContents(scannerParameters);
@@ -136,24 +167,12 @@ export class Main {
      * (e.g., content script or popup).
      */
     onBrowserExtensionMessage(
-        message: IMainMessage,
-        _sender: chrome.runtime.MessageSender,
-        _sendResponse: VoidFunction
-    ): void {
-        messageHandler(message, _sender, _sendResponse);
-
-        // TODO: refactor this to use messageHandler (with types)
-        void (async () => {
-            await Preferences.initDefaults(new ChromeSyncStorage(), new ChromeLocalStorage());
-            Preferences.dump();
-
-            if (message.badgeText) {
-                this.onBadgeTextUpdate(message.badgeText);
-            } else if (!Preferences.isEnabled.value) {
-                this.indicateStatus();
-            } else if (message.domain) {
-                await this.onPageLoaded(message.domain, message.url);
-            }
-        })();
+        message: unknown,
+        sender: chrome.runtime.MessageSender,
+        sendResponse: (response?: unknown) => void
+    ): boolean {
+        const context: MessageHandlerContext = { main: this };
+        const isAsync = messageHandler(message, sender, sendResponse, context);
+        return isAsync;
     }
 }
