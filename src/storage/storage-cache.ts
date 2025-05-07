@@ -1,4 +1,5 @@
 import { IPageEntry, PagesDB } from '@/database';
+import browser from 'webextension-polyfill';
 
 class StorageCache {
     static readonly UPDATE_ALARM_NAME: string = 'updatePagesDB';
@@ -11,10 +12,10 @@ class StorageCache {
     constructor(pagesDb: PagesDB) {
         this.pagesDb = pagesDb;
         // Alarm to trigger periodic updates
-        void chrome.alarms.create(StorageCache.UPDATE_ALARM_NAME, {
+        browser.alarms.create(StorageCache.UPDATE_ALARM_NAME, {
             periodInMinutes: StorageCache.FETCH_INTERVAL_MINUTES,
         });
-        chrome.alarms.onAlarm.addListener((alarm) => {
+        browser.alarms.onAlarm.addListener((alarm) => {
             if (alarm.name === StorageCache.UPDATE_ALARM_NAME) {
                 void this.updatePagesDB();
             }
@@ -28,18 +29,18 @@ class StorageCache {
 
     async isCacheStale(epoch = Date.now()) {
         // Get the last update timestamp
-        const { [StorageCache.CACHE_TIMESTAMP_KEY]: lastUpdated } = await chrome.storage.local.get(
+        const { [StorageCache.CACHE_TIMESTAMP_KEY]: lastUpdated } = await browser.storage.local.get(
             StorageCache.CACHE_TIMESTAMP_KEY
         );
 
         if (!lastUpdated) {
             return true;
         }
-        return epoch - lastUpdated >= StorageCache.FETCH_INTERVAL_MS;
+        return epoch - (lastUpdated as number) >= StorageCache.FETCH_INTERVAL_MS;
     }
 
     async saveCache(data: string, timestamp: number = Date.now()) {
-        await chrome.storage.local.set({
+        await browser.storage.local.set({
             [StorageCache.CACHE_KEY]: data,
             [StorageCache.CACHE_TIMESTAMP_KEY]: timestamp,
         });
@@ -72,7 +73,7 @@ class StorageCache {
 
     // Function to get the cached pages database
     async getCachedPagesDB(): Promise<IPageEntry[]> {
-        const { [StorageCache.CACHE_KEY]: pagesDb } = await chrome.storage.local.get(StorageCache.CACHE_KEY);
+        const { [StorageCache.CACHE_KEY]: pagesDb } = await browser.storage.local.get(StorageCache.CACHE_KEY);
         return (pagesDb as IPageEntry[] | undefined) ?? [];
     }
 

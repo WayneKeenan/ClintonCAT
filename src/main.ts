@@ -10,6 +10,7 @@ import ChromeSyncStorage from '@/storage/chrome/chrome-sync-storage';
 import StorageCache from '@/storage/storage-cache';
 import { IDOMMessengerInterface } from './common/helpers/dom-messenger.types';
 import { MessageHandlerContext } from '@/common/messages/messages.types';
+import browser from 'webextension-polyfill';
 
 export interface IMainMessage {
     badgeText: string;
@@ -168,8 +169,8 @@ export class Main {
      */
     onBrowserExtensionMessage(
         message: unknown,
-        sender: chrome.runtime.MessageSender,
-        sendResponse: (response?: unknown) => void
+        sender: browser.Runtime.MessageSender,
+        sendResponse: (response: unknown) => void
     ): boolean {
         const context: MessageHandlerContext = { main: this };
         const isAsync = messageHandler(message, sender, sendResponse, context);

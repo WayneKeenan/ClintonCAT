@@ -33,6 +33,7 @@
         "@types/react-dom": "^19.0.3",
         "@types/sinon": "^17.0.3",
         "@types/sinon-chrome": "^2.2.15",
+        "@types/webextension-polyfill": "^0.12.3",
         "@types/webpack": "^5.28.5",
         "@types/webpack-env": "^1.18.8",
         "@typescript-eslint/parser": "^8.25.0",
@@ -70,7 +71,6 @@
         "webpack-dev-server": "^5.2.0"
     },
     "dependencies": {
-        "@types/webextension-polyfill": "^0.12.3",
         "classnames": "^2.5.1",
         "tldts": "^6.1.79"
     }

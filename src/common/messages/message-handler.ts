@@ -1,7 +1,7 @@
 import { Maybe } from '@/utils/types';
 import { RuntimeMessage, MessageMap, MessageHandler, MessageHandlerContext } from './messages.types';
-import MessageSender = chrome.runtime.MessageSender;
 import Preferences from '@/common/services/preferences';
+import { Runtime } from 'webextension-polyfill';
 
 const logHandler: MessageHandler<'log'> = (payload, _context) =>
     new Promise((resolve) => {
@@ -48,7 +48,7 @@ const handlers = {
 
 function messageHandler(
     request: unknown,
-    sender: MessageSender,
+    sender: Runtime.MessageSender,
     sendResponse: (response?: unknown) => void,
     context: MessageHandlerContext
 ) {
