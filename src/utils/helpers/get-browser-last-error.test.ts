@@ -1,4 +1,4 @@
-import getBrowserLastError from './get-chrome-last-error';
+import getBrowserLastError from './get-browser-last-error';
 import browser from 'webextension-polyfill';
 
 describe(getBrowserLastError.name, () => {
