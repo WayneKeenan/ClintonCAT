@@ -21,7 +21,7 @@ const getDomainFromUrl = (url: string): string | null => {
 };
 
 // Keeping for reference, but not using it currently
-const _getActiveTabDomain = (): Promise<string | undefined> => {
+const _getActiveTabDomain = (): Promise<string | null> => {
     return new Promise((resolve, reject) => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             const tab = tabs[0];
