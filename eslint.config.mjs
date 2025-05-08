@@ -47,6 +47,7 @@ export default tseslint.config(
             ],
             '@typescript-eslint/no-inferrable-types': 'off',
             '@typescript-eslint/no-extraneous-class': 'off',
+            '@typescript-eslint/restrict-template-expressions': ['error', { allowNullish: false, allowNumber: true }],
             'check-file/filename-naming-convention': [
                 'error',
                 {
