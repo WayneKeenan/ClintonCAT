@@ -9,9 +9,9 @@ import useEffectOnce from '@/utils/hooks/use-effect-once';
 import * as styles from './Popup.module.css';
 import { DOMMessengerAction } from '@/common/helpers/dom-messenger.types';
 import browser from 'webextension-polyfill';
+import { Nullable } from '@/utils/types';
 
-// Helper function to extract domain from a URL
-const getDomainFromUrl = (url: string): string | null => {
+const getDomainFromUrl = (url: string): Nullable<string> => {
     try {
         return new URL(url).hostname;
     } catch {
@@ -21,22 +21,14 @@ const getDomainFromUrl = (url: string): string | null => {
 };
 
 // Keeping for reference, but not using it currently
-const _getActiveTabDomain = (): Promise<string | null> => {
-    return new Promise((resolve, reject) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const tab = tabs[0];
-            if (!tab.url) {
-                return reject(new Error('No active tab found or the active tab has no URL.'));
-            }
-
-            try {
-                const domain = new URL(tab.url).hostname;
-                resolve(domain);
-            } catch {
-                reject(new Error('Failed to extract domain from the URL.'));
-            }
-        });
-    });
+const _getActiveTabDomain = async (): Promise<Nullable<string>> => {
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    const tab = tabs[0] || null;
+    if (!tab?.url) {
+        console.error('Active tab has no URL');
+        return null;
+    }
+    return getDomainFromUrl(tab.url);
 };
 
 const Popup = () => {
