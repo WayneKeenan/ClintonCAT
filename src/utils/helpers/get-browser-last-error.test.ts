@@ -13,7 +13,8 @@ describe(getBrowserLastError.name, () => {
     });
 
     it("should return a new Error with 'Unknown error' if lastError is not an instance of Error", () => {
-        browser.runtime.lastError = 'Some error string' as chrome.runtime.LastError;
+        // @ts-expect-error
+        browser.runtime.lastError = 'Some error string';
         expect(getBrowserLastError()).toEqual(new Error('Unknown error'));
     });
 
