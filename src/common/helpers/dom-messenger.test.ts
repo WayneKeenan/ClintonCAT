@@ -1,26 +1,32 @@
 /**
  * @jest-environment ../../../jest/CustomJSDOMEnvironment
  */
-/* eslint-disable
-   @typescript-eslint/no-explicit-any,
-   @typescript-eslint/no-unsafe-assignment,
-   @typescript-eslint/no-unsafe-member-access,
-   @typescript-eslint/unbound-method
-*/
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import browser from 'webextension-polyfill';
 import DOMMessenger from './dom-messenger';
-import { DOMMessengerAction } from './dom-messenger.types';
+import { DOMMessengerAction, IShowInPageNotificationPayload } from './dom-messenger.types';
+
+type MessagePayload =
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL; selector: string }
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR; selector: string }
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_BY_PARENT_ID; id: string; selector: string }
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL_AS_TEXT; selector: string }
+    | { action: DOMMessengerAction.DOM_CREATE_ELEMENT; id: string; element: string; html: string }
+    | ({ action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION } & IShowInPageNotificationPayload);
+
+type MessageListener = (
+    message: MessagePayload,
+    sender: Record<string, unknown>,
+    sendResponse: (response?: unknown) => void
+) => boolean | undefined;
 
 describe('DOMMessenger', () => {
     let messenger: DOMMessenger;
 
     beforeEach(() => {
         document.body.innerHTML = '';
-
         jest.clearAllMocks();
-
         (browser.tabs.query as jest.Mock).mockResolvedValue([{ id: 1 }]);
-
         messenger = new DOMMessenger();
     });
 
@@ -108,7 +114,7 @@ describe('DOMMessenger', () => {
     });
 
     describe('registerMessageListener (static method)', () => {
-        let listener: (message: any, sender: any, sendResponse: (response?: any) => void) => boolean | undefined;
+        let listener: MessageListener;
 
         beforeEach(() => {
             (browser.runtime.onMessage.addListener as jest.Mock).mockClear();
@@ -228,8 +234,11 @@ describe('DOMMessenger', () => {
 
         test('handles DOM_SHOW_IN_PAGE_NOTIFICATION throws error if message is missing', () => {
             const sendResponse = jest.fn();
+            const invalidPayload: Pick<MessagePayload, 'action'> = {
+                action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION,
+            };
             expect(() => {
-                listener({ action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION } as any, {}, sendResponse);
+                listener(invalidPayload as MessagePayload, {}, sendResponse);
             }).toThrow('DOM_SHOW_IN_PAGE_NOTIFICATION requires a message');
             expect(sendResponse).not.toHaveBeenCalled();
         });
