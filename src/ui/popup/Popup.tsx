@@ -271,14 +271,11 @@ const Popup = () => {
     );
 };
 
-const rootElement: HTMLElement | null = document.getElementById('root');
-if (rootElement instanceof HTMLElement) {
-    const root = createRoot(rootElement);
-    root.render(
-        <React.StrictMode>
-            <Popup />
-        </React.StrictMode>
-    );
-} else {
-    throw Error('No root element was found');
-}
+const rootElement: Nullable<HTMLElement> = document.getElementById('root');
+if (!(rootElement instanceof HTMLElement)) throw Error('No root element was found');
+
+createRoot(rootElement).render(
+    <React.StrictMode>
+        <Popup />
+    </React.StrictMode>
+);
