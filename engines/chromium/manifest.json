@@ -1,7 +1,6 @@
 {
     "background": {
         "service_worker": "background.js",
-        "type": "module",
-        "scripts": ["browser-polyfill.js"]
+        "type": "module"
     }
 }

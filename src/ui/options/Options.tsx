@@ -4,8 +4,8 @@ import { createRoot } from 'react-dom/client';
 import { getDomain } from 'tldts';
 import classNames from 'classnames';
 import Preferences from '@/common/services/preferences';
-import ChromeLocalStorage from '@/storage/chrome/chrome-local-storage';
-import ChromeSyncStorage from '@/storage/chrome/chrome-sync-storage';
+import BrowserLocalStorage from '@/storage/browser/browser-local-storage';
+import BrowserSyncStorage from '@/storage/browser/browser-sync-storage';
 import * as styles from './Options.module.css';
 
 const Options = () => {
@@ -14,7 +14,8 @@ const Options = () => {
     const [domainError, setDomainError] = useState('');
 
     useEffectOnce(() => {
-        Preferences.initDefaults(new ChromeSyncStorage(), new ChromeLocalStorage())
+        // Preferences.initDefaults(new ChromeSyncStorage(), new ChromeLocalStorage())
+        Preferences.initDefaults(new BrowserSyncStorage(), new BrowserLocalStorage())
             .then(() => {
                 Preferences.domainExclusions.addListener('exclude-options', (result: string[]) =>
                     setItems([...result])

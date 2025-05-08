@@ -84,6 +84,7 @@ module.exports = (env, argv) => {
                     { from: 'public/icons/clinton48.png', to: 'icon48.png' },
                     { from: 'public/icons/clinton128.png', to: 'icon128.png' },
                     { from: 'public/images/alert.png', to: 'alert.png' },
+                    { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'browser-polyfill.js' },
                 ],
             }),
             new MiniCssExtractPlugin(),
