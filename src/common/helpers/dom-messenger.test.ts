@@ -204,6 +204,7 @@ describe('DOMMessenger', () => {
             expect(parent?.innerHTML).toContain('<span');
             expect(parent?.innerHTML).toContain('<strong>Bold</strong>');
         });
+
         test('handles DOM_SHOW_IN_PAGE_NOTIFICATION correctly', () => {
             const sendResponse = jest.fn();
             const testMessage = 'Hello from test!';
@@ -224,6 +225,7 @@ describe('DOMMessenger', () => {
             expect(notificationElement.querySelector('button')).not.toBeNull();
             expect(sendResponse).toHaveBeenCalledWith({ success: true });
         });
+
         test('handles DOM_SHOW_IN_PAGE_NOTIFICATION throws error if message is missing', () => {
             const sendResponse = jest.fn();
             expect(() => {
