@@ -8,6 +8,7 @@ const config: Config = {
     coveragePathIgnorePatterns: ['./src/utils/types.ts'],
     coverageProvider: 'v8',
     modulePathIgnorePatterns: ['src/content-scanners/test.ts'],
+    setupFiles: ['./jest.setup.ts'],
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
     },
