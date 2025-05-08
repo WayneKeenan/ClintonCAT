@@ -15,13 +15,10 @@ describe('DOMMessenger', () => {
     let messenger: DOMMessenger;
 
     beforeEach(() => {
-        // Reset the DOM.
         document.body.innerHTML = '';
 
-        // Reset mock implementation
         jest.clearAllMocks();
 
-        // Setup browser.tabs.query mock to return an active tab
         (browser.tabs.query as jest.Mock).mockResolvedValue([{ id: 1 }]);
 
         messenger = new DOMMessenger();
