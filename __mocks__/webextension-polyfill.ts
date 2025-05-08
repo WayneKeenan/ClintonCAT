@@ -112,7 +112,7 @@ const browserMock = {
     tabs: {
         query: jest.fn((queryInfo: Tabs.QueryQueryInfoType) => {
             log('Mocked tabs.query called with:', queryInfo);
-            return Promise.resolve([]);
+            return Promise.resolve([mockTab]);
         }),
 
         create: jest.fn((createProperties: Tabs.CreateCreatePropertiesType) => {
@@ -121,6 +121,17 @@ const browserMock = {
         }),
 
         update: createUpdateFunction(),
+
+        sendMessage: jest.fn(
+            <TMessage = unknown, TResponse = unknown>(
+                tabId: number,
+                message: TMessage,
+                options?: Tabs.SendMessageOptionsType
+            ): Promise<TResponse> => {
+                log('Mocked tabs.sendMessage called with tabId:', tabId, 'message:', message, 'options:', options);
+                return Promise.resolve(undefined as TResponse);
+            }
+        ),
     } as Partial<Tabs.Static>,
 };
 
