@@ -62,9 +62,10 @@ export default tseslint.config(
         },
     },
     {
-        files: ['**/*.test.ts', '**/*.test.tsx'],
+        files: ['**/*.test.ts', '**/*.test.tsx', '__mocks__/**/*'],
         rules: {
             '@typescript-eslint/ban-ts-comment': 'off',
+            '@typescript-eslint/no-unnecessary-type-parameters': 'off',
         },
     },
     includeIgnoreFile(gitignorePath),
