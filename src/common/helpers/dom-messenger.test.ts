@@ -26,12 +26,17 @@ describe('DOMMessenger', () => {
     beforeEach(() => {
         document.body.innerHTML = '';
         jest.clearAllMocks();
-        (browser.tabs.query as jest.Mock).mockResolvedValue([{ id: 1 }]);
-        messenger = new DOMMessenger();
-    });
 
-    afterEach(() => {
-        jest.clearAllMocks();
+        (browser.tabs.query as jest.Mock).mockClear();
+        (browser.tabs.query as jest.Mock).mockResolvedValue([
+            {
+                id: 1,
+                url: 'https://example.com',
+                active: true,
+            },
+        ]);
+
+        messenger = new DOMMessenger();
     });
 
     describe('instance methods', () => {
@@ -128,9 +133,9 @@ describe('DOMMessenger', () => {
 
         test('handles DOM_QUERY_SELECTOR_ALL correctly', () => {
             document.body.innerHTML = `
-        <div id="elem1" class="cls">Content1</div>
-        <div id="elem2" class="cls">Content2</div>
-      `;
+                <div id="elem1" class="cls">Content1</div>
+                <div id="elem2" class="cls">Content2</div>
+            `;
             const sendResponse = jest.fn();
             listener({ action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL, selector: 'div' }, {}, sendResponse);
             expect(sendResponse).toHaveBeenCalled();

@@ -1,10 +1,9 @@
-import chrome from 'sinon-chrome';
+// import chrome from 'sinon-chrome';
 // import StorageCache from './storage-cache';
 // import { PagesDB } from './database';
 
 beforeEach(() => {
-    // @ts-expect-error("browser api mocking")
-    global.chrome = chrome as unknown as typeof chrome;
+    // global.chrome = chrome as unknown as typeof chrome;
 });
 
 test.skip('should create storage cache and pages db', () => {

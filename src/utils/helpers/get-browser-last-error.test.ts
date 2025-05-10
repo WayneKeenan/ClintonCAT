@@ -3,6 +3,7 @@ import browser from 'webextension-polyfill';
 
 describe(getBrowserLastError.name, () => {
     beforeEach(() => {
+        jest.clearAllMocks();
         browser.runtime.lastError = undefined;
     });
 
