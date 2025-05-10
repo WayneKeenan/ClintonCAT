@@ -8,7 +8,7 @@ const pathToExtension = path.resolve(__dirname, '../dist');
 test(
     'should load Chrome Extension popup',
     async () => {
-        const browser = await puppeteer.launch({
+        const puppeteerBrowser = await puppeteer.launch({
             args: [
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`,
@@ -17,7 +17,7 @@ test(
             ],
         });
 
-        const workerTarget = await browser.waitForTarget(
+        const workerTarget = await puppeteerBrowser.waitForTarget(
             // Assumes that there is only one service worker created by the extension and its URL ends with background.js.
             (target) => target.type() === TargetType.SERVICE_WORKER && target.url().endsWith('background.js')
         );
@@ -27,10 +27,11 @@ test(
         if (!worker) {
             throw new Error(`Unable to obtain extension worker`);
         }
+
         // Open a popup (available for Canary channels).
         await worker.evaluate('chrome.action.openPopup();');
 
-        const popupTarget = await browser.waitForTarget(
+        const popupTarget = await puppeteerBrowser.waitForTarget(
             // Assumes that there is only one page with the URL ending with popup.html and that is the popup created by the extension.
             (target) => target.type() === TargetType.PAGE && target.url().endsWith('popup.html')
         );
@@ -43,7 +44,7 @@ test(
 
         // TODO: other tests
 
-        await browser.close();
+        await puppeteerBrowser.close();
     },
     30 * 1000
 );
