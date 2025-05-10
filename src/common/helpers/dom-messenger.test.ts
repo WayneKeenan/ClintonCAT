@@ -1,67 +1,55 @@
 /**
  * @jest-environment ../../../jest/CustomJSDOMEnvironment
  */
-/* eslint-disable
-   @typescript-eslint/no-explicit-any,
-   @typescript-eslint/no-unsafe-assignment,
-   @typescript-eslint/no-unsafe-member-access,
-   @typescript-eslint/no-unsafe-call,
-   @typescript-eslint/unbound-method
-*/
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+import browser from 'webextension-polyfill';
 import DOMMessenger from './dom-messenger';
-import { DOMMessengerAction } from './dom-messenger.types';
+import { DOMMessengerAction, IShowInPageNotificationPayload } from './dom-messenger.types';
+
+type MessagePayload =
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL; selector: string }
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR; selector: string }
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_BY_PARENT_ID; id: string; selector: string }
+    | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL_AS_TEXT; selector: string }
+    | { action: DOMMessengerAction.DOM_CREATE_ELEMENT; id: string; element: string; html: string }
+    | ({ action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION } & IShowInPageNotificationPayload);
+
+type MessageListener = (
+    message: MessagePayload,
+    sender: Record<string, unknown>,
+    sendResponse: (response?: unknown) => void
+) => boolean | undefined;
 
 describe('DOMMessenger', () => {
     let messenger: DOMMessenger;
 
     beforeEach(() => {
-        // Reset the DOM.
         document.body.innerHTML = '';
+        jest.clearAllMocks();
 
-        // TODO: extract this to a more sophisticated chrome mock setup
-        // Set up minimal chrome mocks on the global object.
-        // We assign to (global as any).chrome to avoid conflicts with the @types/chrome declaration.
-        (global as any).chrome = {
-            tabs: {
-                query: jest.fn((_queryInfo: chrome.tabs.QueryInfo, callback: (result: chrome.tabs.Tab[]) => void) => {
-                    callback([{ id: 1 } as chrome.tabs.Tab]); // Always return an active tab with id = 1.
-                }) as unknown as typeof chrome.tabs.query,
-                sendMessage: jest.fn(),
+        (browser.tabs.query as jest.Mock).mockClear();
+        (browser.tabs.query as jest.Mock).mockResolvedValue([
+            {
+                id: 1,
+                url: 'https://example.com',
+                active: true,
             },
-            runtime: {
-                // TODO: add more properties as needed
-                // We only define the parts we use; cast as any to bypass missing properties.
-                lastError: undefined,
-                onMessage: {
-                    addListener: jest.fn(),
-                },
-            } as any,
-        };
+        ]);
 
         messenger = new DOMMessenger();
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
     });
 
     describe('instance methods', () => {
         test('querySelectorAll returns expected element data array', async () => {
             const expectedResponse = [{ tag: 'DIV', id: 'test', className: 'class', innerText: 'Test' }];
-            (chrome.tabs.sendMessage as jest.Mock).mockImplementationOnce((_tabId, _message, callback) => {
-                callback(expectedResponse);
-            });
+            (browser.tabs.sendMessage as jest.Mock).mockResolvedValue(expectedResponse);
 
             const result = await messenger.querySelectorAll('.my-selector');
             expect(result).toEqual(expectedResponse);
-            expect(chrome.tabs.sendMessage).toHaveBeenCalledWith(
-                1,
-                {
-                    action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL,
-                    selector: '.my-selector',
-                },
-                expect.any(Function)
-            );
+            expect(browser.tabs.sendMessage).toHaveBeenCalledWith(1, {
+                action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL,
+                selector: '.my-selector',
+            });
         });
 
         test('querySelector returns expected element data', async () => {
@@ -71,20 +59,14 @@ describe('DOMMessenger', () => {
                 className: 'class2',
                 innerText: 'Test2',
             };
-            (chrome.tabs.sendMessage as jest.Mock).mockImplementationOnce((_tabId, _message, callback) => {
-                callback(expectedResponse);
-            });
+            (browser.tabs.sendMessage as jest.Mock).mockResolvedValue(expectedResponse);
 
             const result = await messenger.querySelector('.my-selector');
             expect(result).toEqual(expectedResponse);
-            expect(chrome.tabs.sendMessage).toHaveBeenCalledWith(
-                1,
-                {
-                    action: DOMMessengerAction.DOM_QUERY_SELECTOR,
-                    selector: '.my-selector',
-                },
-                expect.any(Function)
-            );
+            expect(browser.tabs.sendMessage).toHaveBeenCalledWith(1, {
+                action: DOMMessengerAction.DOM_QUERY_SELECTOR,
+                selector: '.my-selector',
+            });
         });
 
         test('querySelectorByParentId returns expected element data', async () => {
@@ -94,96 +76,68 @@ describe('DOMMessenger', () => {
                 className: 'class3',
                 innerText: 'Test3',
             };
-            (chrome.tabs.sendMessage as jest.Mock).mockImplementationOnce((_tabId, _message, callback) => {
-                callback(expectedResponse);
-            });
+            (browser.tabs.sendMessage as jest.Mock).mockResolvedValue(expectedResponse);
 
             const result = await messenger.querySelectorByParentId('parent1', '.child-selector');
             expect(result).toEqual(expectedResponse);
-            expect(chrome.tabs.sendMessage).toHaveBeenCalledWith(
-                1,
-                {
-                    action: DOMMessengerAction.DOM_QUERY_SELECTOR_BY_PARENT_ID,
-                    id: 'parent1',
-                    selector: '.child-selector',
-                },
-                expect.any(Function)
-            );
+            expect(browser.tabs.sendMessage).toHaveBeenCalledWith(1, {
+                action: DOMMessengerAction.DOM_QUERY_SELECTOR_BY_PARENT_ID,
+                id: 'parent1',
+                selector: '.child-selector',
+            });
         });
 
         test('querySelectorAllAsText returns expected text', async () => {
             const expectedResponse = 'Some text content';
-            (chrome.tabs.sendMessage as jest.Mock).mockImplementationOnce((_tabId, _message, callback) => {
-                callback(expectedResponse);
-            });
+            (browser.tabs.sendMessage as jest.Mock).mockResolvedValue(expectedResponse);
 
             const result = await messenger.querySelectorAllAsText('.text-selector');
             expect(result).toEqual(expectedResponse);
-            expect(chrome.tabs.sendMessage).toHaveBeenCalledWith(
-                1,
-                {
-                    action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL_AS_TEXT,
-                    selector: '.text-selector',
-                },
-                expect.any(Function)
-            );
+            expect(browser.tabs.sendMessage).toHaveBeenCalledWith(1, {
+                action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL_AS_TEXT,
+                selector: '.text-selector',
+            });
         });
 
         test('createElement sends correct message and resolves', async () => {
-            (chrome.tabs.sendMessage as jest.Mock).mockImplementationOnce((_tabId, _message, callback) => {
-                callback();
-            });
+            (browser.tabs.sendMessage as jest.Mock).mockResolvedValue(undefined);
 
             await expect(messenger.createElement('parent1', 'div', '<p>Hello</p>')).resolves.toBeUndefined();
-            expect(chrome.tabs.sendMessage).toHaveBeenCalledWith(
-                1,
-                {
-                    action: DOMMessengerAction.DOM_CREATE_ELEMENT,
-                    id: 'parent1',
-                    element: 'div',
-                    html: '<p>Hello</p>',
-                },
-                expect.any(Function)
-            );
+            expect(browser.tabs.sendMessage).toHaveBeenCalledWith(1, {
+                action: DOMMessengerAction.DOM_CREATE_ELEMENT,
+                id: 'parent1',
+                element: 'div',
+                html: '<p>Hello</p>',
+            });
         });
 
-        test('sendMessageToCurrentTab throws error if no active tab found', async () => {
-            // Override chrome.tabs.query to return no active tab.
-            (chrome.tabs.query as jest.Mock).mockImplementationOnce((_queryInfo, callback) => {
-                callback([]);
-            });
-            await expect(messenger.querySelector('.my-selector')).rejects.toThrow('No active tab found');
+        test('sendMessageToCurrentTab throws error when no active tab found', async () => {
+            // Override browser.tabs.query to return no active tab.
+            (browser.tabs.query as jest.Mock).mockResolvedValue([]);
+            await expect(messenger.querySelector('.my-selector')).rejects.toThrow();
         });
     });
 
     describe('registerMessageListener (static method)', () => {
-        let listener: (
-            message: any,
-            sender: chrome.runtime.MessageSender,
-            sendResponse: (response?: any) => void
-        ) => void;
+        let listener: MessageListener;
 
         beforeEach(() => {
-            (chrome.runtime.onMessage.addListener as jest.Mock).mockClear();
+            (browser.runtime.onMessage.addListener as jest.Mock).mockClear();
             DOMMessenger.registerMessageListener();
-            listener = (chrome.runtime.onMessage.addListener as jest.Mock).mock.calls[0][0];
+            listener = (browser.runtime.onMessage.addListener as jest.Mock).mock.calls[0][0];
         });
 
         test('registers a message listener', () => {
-            expect(chrome.runtime.onMessage.addListener).toHaveBeenCalled();
+            expect(browser.runtime.onMessage.addListener).toHaveBeenCalled();
         });
 
         test('handles DOM_QUERY_SELECTOR_ALL correctly', () => {
             document.body.innerHTML = `
-        <div id="elem1" class="cls">Content1</div>
-        <div id="elem2" class="cls">Content2</div>
-      `;
+                <div id="elem1" class="cls">Content1</div>
+                <div id="elem2" class="cls">Content2</div>
+            `;
             const sendResponse = jest.fn();
-            listener(
-                { action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL, selector: 'div' },
-                {} as chrome.runtime.MessageSender,
-                sendResponse
-            );
+            listener({ action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL, selector: 'div' }, {}, sendResponse);
             expect(sendResponse).toHaveBeenCalled();
             const response = sendResponse.mock.calls[0][0];
             expect(Array.isArray(response)).toBe(true);
@@ -205,11 +159,7 @@ describe('DOMMessenger', () => {
         test('handles DOM_QUERY_SELECTOR correctly', () => {
             document.body.innerHTML = `<span id="span1" class="scls">SpanContent</span>`;
             const sendResponse = jest.fn();
-            listener(
-                { action: DOMMessengerAction.DOM_QUERY_SELECTOR, selector: 'span' },
-                {} as chrome.runtime.MessageSender,
-                sendResponse
-            );
+            listener({ action: DOMMessengerAction.DOM_QUERY_SELECTOR, selector: 'span' }, {}, sendResponse);
             expect(sendResponse).toHaveBeenCalled();
             const response = sendResponse.mock.calls[0][0];
             expect(response).toMatchObject({
@@ -225,7 +175,7 @@ describe('DOMMessenger', () => {
             const sendResponse = jest.fn();
             listener(
                 { action: DOMMessengerAction.DOM_QUERY_SELECTOR_BY_PARENT_ID, id: 'parent', selector: 'p' },
-                {} as chrome.runtime.MessageSender,
+                {},
                 sendResponse
             );
             expect(sendResponse).toHaveBeenCalled();
@@ -241,11 +191,7 @@ describe('DOMMessenger', () => {
         test('handles DOM_QUERY_SELECTOR_ALL_AS_TEXT correctly', () => {
             document.body.innerHTML = `<div>First</div><div>Second</div>`;
             const sendResponse = jest.fn();
-            listener(
-                { action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL_AS_TEXT, selector: 'div' },
-                {} as chrome.runtime.MessageSender,
-                sendResponse
-            );
+            listener({ action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL_AS_TEXT, selector: 'div' }, {}, sendResponse);
             expect(sendResponse).toHaveBeenCalled();
             const response = sendResponse.mock.calls[0][0];
             expect(response).toContain('First');
@@ -262,19 +208,20 @@ describe('DOMMessenger', () => {
                     element: 'span',
                     html: '<strong>Bold</strong>',
                 },
-                {} as chrome.runtime.MessageSender,
+                {},
                 sendResponse
             );
             const parent = document.getElementById('parent');
             expect(parent?.innerHTML).toContain('<span');
             expect(parent?.innerHTML).toContain('<strong>Bold</strong>');
         });
+
         test('handles DOM_SHOW_IN_PAGE_NOTIFICATION correctly', () => {
             const sendResponse = jest.fn();
             const testMessage = 'Hello from test!';
             listener(
                 { action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION, message: testMessage },
-                {} as chrome.runtime.MessageSender,
+                {},
                 sendResponse
             );
 
@@ -289,14 +236,14 @@ describe('DOMMessenger', () => {
             expect(notificationElement.querySelector('button')).not.toBeNull();
             expect(sendResponse).toHaveBeenCalledWith({ success: true });
         });
+
         test('handles DOM_SHOW_IN_PAGE_NOTIFICATION throws error if message is missing', () => {
             const sendResponse = jest.fn();
+            const invalidPayload: Pick<MessagePayload, 'action'> = {
+                action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION,
+            };
             expect(() => {
-                listener(
-                    { action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION } as any,
-                    {} as chrome.runtime.MessageSender,
-                    sendResponse
-                );
+                listener(invalidPayload as MessagePayload, {}, sendResponse);
             }).toThrow('DOM_SHOW_IN_PAGE_NOTIFICATION requires a message');
             expect(sendResponse).not.toHaveBeenCalled();
         });

@@ -1,7 +1,7 @@
 import { Maybe } from '@/utils/types';
 import { RuntimeMessage, MessageMap, MessageHandler, MessageHandlerContext } from './messages.types';
-import MessageSender = chrome.runtime.MessageSender;
 import Preferences from '@/common/services/preferences';
+import browser, { Runtime } from 'webextension-polyfill';
 
 const logHandler: MessageHandler<'log'> = (payload, _context) =>
     new Promise((resolve) => {
@@ -9,29 +9,27 @@ const logHandler: MessageHandler<'log'> = (payload, _context) =>
         resolve();
     });
 
-const notifyHandler: MessageHandler<'notify'> = (payload, _context) =>
-    new Promise((resolve, reject) => {
-        if (!Preferences.browserNotificationsEnabled.value) {
-            console.log('Browser notifications are disabled. Skipping notification via notifyHandler.');
-            resolve();
-            return;
-        }
-        const notificationOptions: chrome.notifications.NotificationOptions<true> = {
-            type: 'basic',
-            iconUrl: chrome.runtime.getURL('alert.png'),
-            title: payload.title,
-            message: payload.message,
-        };
-        chrome.notifications.create(notificationOptions, (notificationId) => {
-            if (chrome.runtime.lastError) {
-                console.error('Error creating notification:', chrome.runtime.lastError.message);
-                reject(new Error(chrome.runtime.lastError.message ?? 'Failed to create notification'));
-            } else {
-                console.log('Notification created successfully with ID:', notificationId);
-                resolve();
-            }
-        });
-    });
+const notifyHandler: MessageHandler<'notify'> = async (payload, _context) => {
+    if (!Preferences.browserNotificationsEnabled.value) {
+        console.log('Browser notifications are disabled. Skipping notification via notifyHandler.');
+        return;
+    }
+
+    const notificationOptions = {
+        type: 'basic',
+        iconUrl: browser.runtime.getURL('alert.png'),
+        title: payload.title,
+        message: payload.message,
+    } as browser.Notifications.CreateNotificationOptions;
+
+    try {
+        const notificationId = await browser.notifications.create(notificationOptions);
+        console.log('Notification created successfully with ID:', notificationId);
+    } catch (error) {
+        console.error('Error creating notification:', error instanceof Error ? error.message : 'Unknown error');
+        throw new Error('Failed to create notification');
+    }
+};
 
 const pageInfoHandler: MessageHandler<'pageInfo'> = (payload, context) => {
     return new Promise((resolve, reject) => {
@@ -48,7 +46,7 @@ const handlers = {
 
 function messageHandler(
     request: unknown,
-    sender: MessageSender,
+    sender: Runtime.MessageSender,
     sendResponse: (response?: unknown) => void,
     context: MessageHandlerContext
 ) {

@@ -45,8 +45,10 @@ export default tseslint.config(
                     ignoreRestSiblings: true,
                 },
             ],
-            '@typescript-eslint/no-inferrable-types': 'off',
             '@typescript-eslint/no-extraneous-class': 'off',
+            '@typescript-eslint/no-inferrable-types': 'off',
+            '@typescript-eslint/no-unnecessary-condition': 'off',
+            '@typescript-eslint/restrict-template-expressions': ['error', { allowNullish: false, allowNumber: true }],
             'check-file/filename-naming-convention': [
                 'error',
                 {
@@ -57,6 +59,14 @@ export default tseslint.config(
                     ignoreMiddleExtensions: true,
                 },
             ],
+        },
+    },
+    {
+        files: ['**/*.test.ts', '**/*.test.tsx', '__mocks__/**/*'],
+        rules: {
+            '@typescript-eslint/ban-ts-comment': 'off',
+            '@typescript-eslint/no-unnecessary-type-parameters': 'off',
+            '@typescript-eslint/unbound-method': 'off',
         },
     },
     includeIgnoreFile(gitignorePath),

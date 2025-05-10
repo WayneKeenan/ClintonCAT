@@ -1,39 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import classNames from 'classnames';
 import sendMessage from '@/common/messages/send-message';
 import Preferences from '@/common/services/preferences';
-import ChromeLocalStorage from '@/storage/chrome/chrome-local-storage';
-import ChromeSyncStorage from '@/storage/chrome/chrome-sync-storage';
+import BrowserLocalStorage from '@/storage/browser/browser-local-storage';
+import BrowserSyncStorage from '@/storage/browser/browser-sync-storage';
 import useEffectOnce from '@/utils/hooks/use-effect-once';
 import * as styles from './Popup.module.css';
 import { DOMMessengerAction } from '@/common/helpers/dom-messenger.types';
+import browser from 'webextension-polyfill';
+import { Nullable } from '@/utils/types';
 
-const getActiveTabDomain = (): Promise<string | undefined> => {
-    return new Promise((resolve, reject) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const tab = tabs[0];
-            if (!tab.url) {
-                return reject(new Error('No active tab found or the active tab has no URL.'));
-            }
+const getDomainFromUrl = (url: string): Nullable<string> => {
+    try {
+        return new URL(url).hostname;
+    } catch {
+        console.error('Failed to extract domain from URL:', url);
+        return null;
+    }
+};
 
-            try {
-                const domain = new URL(tab.url).hostname;
-                resolve(domain);
-            } catch {
-                reject(new Error('Failed to extract domain from the URL.'));
-            }
-        });
-    });
+// Keeping for reference, but not using it currently
+const _getActiveTabDomain = async (): Promise<Nullable<string>> => {
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    const tab = tabs[0] || null;
+    if (!tab?.url) {
+        console.error('Active tab has no URL');
+        return null;
+    }
+    return getDomainFromUrl(tab.url);
 };
 
 const Popup = () => {
     const [isEnabled, setIsEnabled] = useState<boolean>(false);
     const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState<boolean>(true);
     const [pageNotificationsEnabled, setPageNotificationsEnabled] = useState<boolean>(true);
+    const [_currentUrl, setCurrentUrl] = useState<string | null>(null);
+    const [_currentDomain, setCurrentDomain] = useState<string | null>(null);
+    const [_domainsChanged, setDomainsChanged] = useState<boolean>(false);
 
     useEffectOnce(() => {
-        Preferences.initDefaults(new ChromeSyncStorage(), new ChromeLocalStorage())
+        Preferences.initDefaults(new BrowserSyncStorage(), new BrowserLocalStorage())
             .then(() => {
                 Preferences.isEnabled.addListener('enable-options', (result: boolean) => setIsEnabled(result));
                 setIsEnabled(Preferences.isEnabled.value);
@@ -59,6 +66,23 @@ const Popup = () => {
         };
     });
 
+    useEffect(() => {
+        // Effect to get the current domain when component mounts
+        const fetchCurrentDomain = async () => {
+            try {
+                const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+                if (tabs[0]?.url) {
+                    setCurrentUrl(tabs[0].url);
+                    setCurrentDomain(getDomainFromUrl(tabs[0].url));
+                }
+            } catch (err) {
+                console.error('Error fetching current domain:', err instanceof Error ? err.message : 'Unknown error');
+            }
+        };
+
+        fetchCurrentDomain();
+    }, []);
+
     const handleToggleEnabled = () => {
         Preferences.isEnabled.value = !Preferences.isEnabled.value;
     };
@@ -76,6 +100,7 @@ const Popup = () => {
     };
 
     const testBrowserNotification = () => {
+        console.log('testBrowserNotification', Preferences.browserNotificationsEnabled.value);
         if (Preferences.browserNotificationsEnabled.value) {
             sendMessage('notify', { title: 'Test Notification', message: 'This is a test browser notification' }).catch(
                 console.error
@@ -85,14 +110,11 @@ const Popup = () => {
         }
     };
 
-    const testPageNotification = () => {
+    const testPageNotification = async () => {
         if (Preferences.pageNotificationsEnabled.value) {
             console.log('Attempting to send page notification...');
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                if (chrome.runtime.lastError) {
-                    console.error(`Error querying active tab: ${chrome.runtime.lastError.message ?? 'Unknown error'}`);
-                    return;
-                }
+            try {
+                const tabs = await browser.tabs.query({ active: true, currentWindow: true });
                 const activeTab = tabs[0];
                 if (activeTab.id) {
                     const tabId = activeTab.id;
@@ -101,63 +123,93 @@ const Popup = () => {
                         action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION,
                         message: 'This is a test page notification',
                     };
-                    chrome.tabs
-                        .sendMessage(tabId, messageToSend)
-                        .then((response) => {
-                            console.log('Page notification sent successfully. Response:', response);
-                        })
-                        .catch((error: unknown) => {
-                            if (error instanceof Error && error.message.includes('Receiving end does not exist')) {
-                                console.warn(
-                                    `Could not send page notification: The content script might not be running or ready on this page (${
-                                        activeTab.url ?? 'URL not available'
-                                    }). Error: ${error.message}`
-                                );
-                            } else {
-                                console.error('Failed to send page notification due to an unexpected error:', error);
-                            }
-                        });
+
+                    try {
+                        const response = await browser.tabs.sendMessage(tabId, messageToSend);
+                        console.log('Page notification sent successfully. Response:', response);
+                    } catch (error) {
+                        if (error instanceof Error && error.message.includes('Receiving end does not exist')) {
+                            console.warn(
+                                `Could not send page notification: The content script might not be running or ready on this page (${
+                                    activeTab.url ?? 'URL not available'
+                                }). Error: ${error.message}`
+                            );
+                        } else {
+                            console.error('Failed to send page notification due to an unexpected error:', error);
+                        }
+                    }
                 } else {
                     console.error('Could not find active tab ID to send page notification.');
                 }
-            });
+            } catch (error) {
+                console.error('Error querying tabs:', error);
+            }
         } else {
             console.log('Page notifications are disabled.');
         }
     };
 
-    const allowThisSite = () => {
-        getActiveTabDomain()
-            .then((domain) => {
+    const allowThisSite = async () => {
+        try {
+            const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+            if (tabs[0]?.url) {
+                const domain = getDomainFromUrl(tabs[0].url);
                 if (domain) {
                     Preferences.domainExclusions.delete(domain);
                 }
-            })
-            .catch((error: unknown) => {
-                if (error instanceof Error) {
-                    console.error('Failed to allow the site:', error.message);
-                    throw error;
-                }
-            });
+            }
+        } catch (error) {
+            console.error('Failed to allow the site:', error instanceof Error ? error.message : 'Unknown error');
+        }
     };
 
-    const excludeThisSite = () => {
-        getActiveTabDomain()
-            .then((domain) => {
+    const excludeThisSite = async () => {
+        try {
+            const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+            if (tabs[0]?.url) {
+                const domain = getDomainFromUrl(tabs[0].url);
                 if (domain) {
                     Preferences.domainExclusions.add(domain);
                 }
-            })
-            .catch((error: unknown) => {
-                if (error instanceof Error) {
-                    console.error('Failed to exclude the site:', error.message);
-                    throw error;
-                }
-            });
+            }
+        } catch (error) {
+            console.error('Failed to exclude the site:', error instanceof Error ? error.message : 'Unknown error');
+        }
     };
 
-    const openOptionsPage = () => {
-        void chrome.runtime.openOptionsPage();
+    // Not currently used but keeping for reference
+    const _onExcludeDomainClick = async () => {
+        const newExclusions = [...Preferences.domainExclusions.value];
+
+        try {
+            const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+            if (!tabs[0]?.url) {
+                console.error('No active tab or URL found');
+                return;
+            }
+
+            const domain = getDomainFromUrl(tabs[0].url);
+            if (!domain) {
+                console.error('Could not extract domain from URL');
+                return;
+            }
+
+            if (!newExclusions.includes(domain)) {
+                newExclusions.push(domain);
+                Preferences.domainExclusions.value = newExclusions;
+                setDomainsChanged(true);
+            }
+
+            void browser.tabs.reload();
+        } catch (error) {
+            console.error(
+                `Error handling exclude domain action: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
+        }
+    };
+
+    const goToOptions = () => {
+        void browser.runtime.openOptionsPage();
     };
 
     return (
@@ -165,7 +217,7 @@ const Popup = () => {
             <p className={styles.popupTitle}>ClintonCAT</p>
             <div className={styles.divider} />
             <label className={styles.toggleLabel}>
-                <span>{isEnabled ? 'Disable' : 'Enable'} ClintonCAT</span>
+                <span>ClintonCAT is {isEnabled ? 'enabled' : 'disabled'}</span>
                 <input type="checkbox" checked={isEnabled} onChange={handleToggleEnabled} />
                 <span className={classNames(styles.toggleSlider, { [styles.toggled]: isEnabled })} />
             </label>
@@ -190,19 +242,19 @@ const Popup = () => {
                 <button className={styles.popupButton} onClick={openCATPage}>
                     Open CAT page
                 </button>
-                <button className={styles.popupButton} onClick={allowThisSite}>
+                <button className={styles.popupButton} onClick={() => void allowThisSite()}>
                     Allow this site
                 </button>
-                <button className={styles.popupButton} onClick={excludeThisSite}>
+                <button className={styles.popupButton} onClick={() => void excludeThisSite()}>
                     Exclude this site
                 </button>
                 <button className={styles.popupButton} onClick={() => testBrowserNotification()}>
                     Test Browser Notification
                 </button>
-                <button className={styles.popupButton} onClick={() => testPageNotification()}>
+                <button className={styles.popupButton} onClick={() => void testPageNotification()}>
                     Test Page Notification
                 </button>
-                <button className={styles.popupButton} onClick={openOptionsPage}>
+                <button className={styles.popupButton} onClick={goToOptions}>
                     Go to Options
                 </button>
             </div>
@@ -211,14 +263,11 @@ const Popup = () => {
     );
 };
 
-const rootElement: HTMLElement | null = document.getElementById('root');
-if (rootElement instanceof HTMLElement) {
-    const root = createRoot(rootElement);
-    root.render(
-        <React.StrictMode>
-            <Popup />
-        </React.StrictMode>
-    );
-} else {
-    throw Error('No root element was found');
-}
+const rootElement: Nullable<HTMLElement> = document.getElementById('root');
+if (!(rootElement instanceof HTMLElement)) throw Error('No root element was found');
+
+createRoot(rootElement).render(
+    <React.StrictMode>
+        <Popup />
+    </React.StrictMode>
+);

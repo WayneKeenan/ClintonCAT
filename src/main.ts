@@ -5,11 +5,12 @@ import { IScanParameters } from '@/common/services/content-scanner.types';
 import Preferences from '@/common/services/preferences';
 import DOMMessenger from '@/common/helpers/dom-messenger';
 import { CATWikiPageSearchResults, PagesDB } from '@/database';
-import ChromeLocalStorage from '@/storage/chrome/chrome-local-storage';
-import ChromeSyncStorage from '@/storage/chrome/chrome-sync-storage';
+import BrowserLocalStorage from '@/storage/browser/browser-local-storage';
+import BrowserSyncStorage from '@/storage/browser/browser-sync-storage';
 import StorageCache from '@/storage/storage-cache';
 import { IDOMMessengerInterface } from './common/helpers/dom-messenger.types';
 import { MessageHandlerContext } from '@/common/messages/messages.types';
+import browser from 'webextension-polyfill';
 
 export interface IMainMessage {
     badgeText: string;
@@ -23,7 +24,7 @@ export class Main {
     contentScanner: ContentScanner;
 
     constructor() {
-        // TODO: need a ChromeLocalStorage for pages db
+        // TODO: need a BrowserLocalStorage for pages db
         this.pagesDatabase = new PagesDB();
         this.pagesDatabase.initDefaultPages();
         this.storageCache = new StorageCache(this.pagesDatabase);
@@ -31,7 +32,7 @@ export class Main {
     }
 
     indicateStatus() {
-        void chrome.action.setBadgeText({
+        void browser.action.setBadgeText({
             text: Preferences.isEnabled.value ? 'on' : 'off',
         });
     }
@@ -45,14 +46,14 @@ export class Main {
 
         if (totalPages > 0) {
             // Update badge text with total pages found
-            void chrome.action.setBadgeText({ text: pages.totalPagesFound.toString() });
+            void browser.action.setBadgeText({ text: pages.totalPagesFound.toString() });
 
             if (Preferences.browserNotificationsEnabled.value) {
                 // Example: show a notification about the found pages
                 // NOTE: Requires "notifications" permission in your manifest.json
-                chrome.notifications.create({
+                void browser.notifications.create({
                     type: 'basic',
-                    iconUrl: chrome.runtime.getURL('alert.png'),
+                    iconUrl: browser.runtime.getURL('alert.png'),
                     title: 'CAT Pages Found',
                     message: `Found ${pages.totalPagesFound.toString()} page(s).`,
                 });
@@ -81,17 +82,14 @@ export class Main {
     notify(message: string) {
         if (Preferences.browserNotificationsEnabled.value) {
             const notificationId = 'abc123';
-
-            const options: chrome.notifications.NotificationOptions<true> = {
+            const options: browser.Notifications.CreateNotificationOptions = {
                 type: 'basic',
-                iconUrl: chrome.runtime.getURL('alert.png'),
+                iconUrl: browser.runtime.getURL('alert.png'),
                 title: 'Hey',
                 message,
             };
 
-            const callback = (notificationId: string) => console.log('notificationId: ', notificationId);
-
-            chrome.notifications.create(notificationId, options, callback);
+            void browser.notifications.create(notificationId, options);
         } else {
             console.log('Browser notifications are disabled. Skipping notification.');
         }
@@ -101,7 +99,7 @@ export class Main {
      * Called when the extension wants to change the action badge text manually.
      */
     onBadgeTextUpdate(text: string): void {
-        void chrome.action.setBadgeText({ text: text });
+        void browser.action.setBadgeText({ text: text });
     }
 
     checkDomainIsExcluded(domain: string): boolean {
@@ -156,7 +154,7 @@ export class Main {
      */
     onBrowserExtensionInstalled(): void {
         console.log('ClintonCAT Extension Installed');
-        Preferences.initDefaults(new ChromeSyncStorage(), new ChromeLocalStorage()).then(() => {
+        Preferences.initDefaults(new BrowserSyncStorage(), new BrowserLocalStorage()).then(() => {
             Preferences.dump();
             this.indicateStatus();
         });
@@ -168,9 +166,10 @@ export class Main {
      */
     onBrowserExtensionMessage(
         message: unknown,
-        sender: chrome.runtime.MessageSender,
-        sendResponse: (response?: unknown) => void
+        sender: browser.Runtime.MessageSender,
+        sendResponse: (response: unknown) => void
     ): boolean {
+        console.log('onBrowserExtensionMessage', message, sender, sendResponse);
         const context: MessageHandlerContext = { main: this };
         const isAsync = messageHandler(message, sender, sendResponse, context);
         return isAsync;

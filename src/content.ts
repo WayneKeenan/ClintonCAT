@@ -1,4 +1,5 @@
 import DOMMessenger from '@/common/helpers/dom-messenger';
+import browser from 'webextension-polyfill';
 
 DOMMessenger.registerMessageListener();
 
@@ -7,7 +8,7 @@ const pageInfoPayload = {
     url: window.location.href,
 };
 
-void chrome.runtime.sendMessage({
+void browser.runtime.sendMessage({
     type: 'pageInfo',
     payload: pageInfoPayload,
 });

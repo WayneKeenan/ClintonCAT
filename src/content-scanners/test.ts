@@ -1,5 +1,6 @@
 import { IContentScannerPlugin, IElementData, IScanParameters } from '@/common/services/content-scanner.types';
 import { CATWikiPageSearchResults, PageEntry } from '@/database';
+import browser from 'webextension-polyfill';
 
 // Simple test for simple test page, e.g.
 // https://waynekeenan.github.io/ClintonCAT/tests/www/3products_1cat.html
@@ -27,7 +28,7 @@ export class TestScanner implements IContentScannerPlugin {
         const divElements: IElementData[] = await params.dom.querySelectorAll('div');
         console.dir(divElements);
 
-        const alertImgUrl = chrome.runtime.getURL('alert.png');
+        const alertImgUrl = browser.runtime.getURL('alert.png');
 
         for (const divElement of divElements) {
             const divId = divElement.id;

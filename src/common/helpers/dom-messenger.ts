@@ -1,5 +1,6 @@
 import { IElementData } from '@/common/services/content-scanner.types';
 import { DOMMessengerAction, IDOMMessengerInterface, IShowInPageNotificationPayload } from './dom-messenger.types';
+import browser from 'webextension-polyfill';
 
 type DOMMessagePayload =
     | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL; selector: string }
@@ -92,7 +93,7 @@ class DOMMessenger implements IDOMMessengerInterface {
     //         document.body.style.backgroundColor = backgroundColor;
     //     }
     //
-    //     chrome.scripting
+    //     browser.scripting
     //         .executeScript({
     //             target: { xtabId: getTabId() },
     //             func: changeBackgroundColor,
@@ -107,27 +108,16 @@ class DOMMessenger implements IDOMMessengerInterface {
     private async sendMessageToCurrentTab(message: DOMMessagePayload): Promise<unknown> {
         const tab = await this.getCurrentTab();
 
-        if (!tab?.id) {
+        if (!tab.id) {
             throw new Error('No active tab found');
         }
 
-        return new Promise((resolve, reject) => {
-            chrome.tabs.sendMessage(tab.id ?? -1, message, (response) => {
-                if (chrome.runtime.lastError instanceof Error) {
-                    reject(chrome.runtime.lastError);
-                } else {
-                    resolve(response);
-                }
-            });
-        });
+        return await browser.tabs.sendMessage(tab.id, message);
     }
 
-    private async getCurrentTab(): Promise<chrome.tabs.Tab | undefined> {
-        return new Promise((resolve) => {
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                resolve(tabs[0]);
-            });
-        });
+    private async getCurrentTab(): Promise<browser.Tabs.Tab> {
+        const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+        return tabs[0];
     }
 
     private static elementDataFromNode(element: HTMLElement | null | undefined): IElementData | undefined {
@@ -148,13 +138,15 @@ class DOMMessenger implements IDOMMessengerInterface {
     }
 
     public static registerMessageListener() {
-        chrome.runtime.onMessage.addListener((message: DOMMessagePayload, _sender, sendResponse) => {
-            switch (message.action) {
+        browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+            const typedMessage = message as DOMMessagePayload;
+
+            switch (typedMessage.action) {
                 case DOMMessengerAction.DOM_QUERY_SELECTOR_ALL: {
-                    if (!message.selector) {
+                    if (!typedMessage.selector) {
                         throw new Error(`DOM_QUERY_SELECTOR_ALL requires a selector`);
                     }
-                    const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(message.selector);
+                    const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(typedMessage.selector);
                     const elementData = DOMMessenger.elementDataFromNodes(nodes);
                     // It doesn't seem possible to send a NodeList (as-is, cloned or deep copied) via `sendResponse`
                     sendResponse(elementData);
@@ -162,32 +154,32 @@ class DOMMessenger implements IDOMMessengerInterface {
                 }
 
                 case DOMMessengerAction.DOM_QUERY_SELECTOR: {
-                    if (!message.selector) {
+                    if (!typedMessage.selector) {
                         throw new Error(`DOM_QUERY_SELECTOR requires a selector`);
                     }
-                    const element: HTMLElement | null = document.querySelector(message.selector);
+                    const element: HTMLElement | null = document.querySelector(typedMessage.selector);
                     sendResponse(DOMMessenger.elementDataFromNode(element));
                     break;
                 }
 
                 case DOMMessengerAction.DOM_QUERY_SELECTOR_BY_PARENT_ID: {
-                    if (!message.selector) {
+                    if (!typedMessage.selector) {
                         throw new Error(`DOM_QUERY_SELECTOR_BY_PARENT_ID requires a selector`);
                     }
-                    if (!message.id) {
+                    if (!typedMessage.id) {
                         throw new Error(`DOM_QUERY_SELECTOR_BY_PARENT_ID requires an id`);
                     }
-                    const parent = document.getElementById(message.id);
-                    const element: HTMLElement | null | undefined = parent?.querySelector(message.selector);
+                    const parent = document.getElementById(typedMessage.id);
+                    const element: HTMLElement | null | undefined = parent?.querySelector(typedMessage.selector);
                     sendResponse(DOMMessenger.elementDataFromNode(element));
                     break;
                 }
 
                 case DOMMessengerAction.DOM_QUERY_SELECTOR_ALL_AS_TEXT: {
-                    if (!message.selector) {
+                    if (!typedMessage.selector) {
                         throw new Error(`DOM_QUERY_SELECTOR_ALL_AS_TEXT requires a selector`);
                     }
-                    const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(message.selector);
+                    const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(typedMessage.selector);
                     const text = Array.from(nodes)
                         .map((node) => (node.textContent ?? '') + node.innerText)
                         .join('\n');
@@ -196,21 +188,21 @@ class DOMMessenger implements IDOMMessengerInterface {
                 }
 
                 case DOMMessengerAction.DOM_CREATE_ELEMENT: {
-                    if (!message.id) {
+                    if (!typedMessage.id) {
                         throw new Error(`DOM_CREATE_ELEMENT requires an id`);
                     }
-                    if (!message.element) {
+                    if (!typedMessage.element) {
                         throw new Error(`DOM_CREATE_ELEMENT requires an element`);
                     }
-                    if (!message.html) {
+                    if (!typedMessage.html) {
                         throw new Error(`DOM_CREATE_ELEMENT requires html`);
                     }
-                    const parent = document.getElementById(message.id);
+                    const parent = document.getElementById(typedMessage.id);
                     if (parent) {
-                        const newElement = document.createElement(message.element);
-                        console.log('DOM_CREATE_ELEMENT html: ', message.html);
+                        const newElement = document.createElement(typedMessage.element);
+                        console.log('DOM_CREATE_ELEMENT html: ', typedMessage.html);
 
-                        newElement.innerHTML = message.html;
+                        newElement.innerHTML = typedMessage.html;
                         try {
                             parent.appendChild(newElement);
                         } catch (error) {
@@ -221,16 +213,19 @@ class DOMMessenger implements IDOMMessengerInterface {
                     break;
                 }
                 case DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION: {
-                    if (!message.message) {
+                    if (!typedMessage.message) {
                         throw new Error(`DOM_SHOW_IN_PAGE_NOTIFICATION requires a message`);
                     }
-                    DOMMessenger.displayNotification(message.message);
+                    DOMMessenger.displayNotification(typedMessage.message);
                     sendResponse({ success: true });
                     break;
                 }
                 default:
                     break;
             }
+
+            // Return true for async operations
+            return true;
         });
     }
     private static displayNotification(message: string): void {
