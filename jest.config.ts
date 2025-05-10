@@ -12,8 +12,10 @@ const config: Config = {
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
     },
-    preset: 'ts-jest',
     testEnvironment: 'node',
+    transform: {
+        '^.+\\.(t|j)sx?$': '@swc/jest',
+    },
 };
 
 export default config;

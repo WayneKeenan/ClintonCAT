@@ -135,6 +135,4 @@ const browserMock = {
     } as Partial<Tabs.Static>,
 };
 
-export { Action, Notifications, Runtime, Tabs };
-
 export default browserMock;
