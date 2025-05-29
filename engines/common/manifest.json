@@ -11,7 +11,7 @@
     ],
     "web_accessible_resources": [
         {
-            "resources": ["alert.png"],
+            "resources": ["alert.png", "*.wasm"],
             "matches": ["<all_urls>"]
         }
     ],
@@ -24,5 +24,8 @@
             "id": "{11e4e61d-44d6-4d8c-af69-8d879d411a84}",
             "strict_min_version": "58.0"
         }
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self';"
     }
 }

@@ -31,6 +31,11 @@ module.exports = (env, argv) => {
                 '@': path.resolve(__dirname, 'src'),
             },
             extensions: ['.tsx', '.ts', '.js'],
+            fallback: {
+                path: false,
+                fs: false,
+                crypto: false,
+            },
         },
         module: {
             rules: [
@@ -61,6 +66,10 @@ module.exports = (env, argv) => {
                     exclude: /\.module\.css$/,
                     use: [MiniCssExtractPlugin.loader, 'css-loader'],
                 },
+                {
+                    test: /\.wasm$/,
+                    type: 'asset/resource',
+                },
             ],
         },
         plugins: [
@@ -85,6 +94,7 @@ module.exports = (env, argv) => {
                     { from: 'public/icons/clinton128.png', to: 'icon128.png' },
                     { from: 'public/images/alert.png', to: 'alert.png' },
                     { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'browser-polyfill.js' },
+                    { from: 'node_modules/sql.js/dist/sql-wasm.wasm', to: 'sql-wasm.wasm' },
                 ],
             }),
             new MiniCssExtractPlugin(),
@@ -93,5 +103,8 @@ module.exports = (env, argv) => {
             new TouchManifestPlugin(),
         ],
         devtool: isDevelopment ? 'cheap-module-source-map' : 'source-map',
+        experiments: {
+            asyncWebAssembly: true,
+        },
     };
 };

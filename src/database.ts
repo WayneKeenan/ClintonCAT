@@ -1,5 +1,7 @@
 import escapeRegex from '@/utils/helpers/escape-regex';
 import pagesDbDefaultJson from '../data/pages_db.json'; // assert { type: 'json' };
+import initSqlJs, { Database } from 'sql.js';
+import browser from 'webextension-polyfill';
 
 export interface IPageEntry {
     pageId: number;
@@ -93,9 +95,30 @@ export class PagesDB {
 
     static readonly pagesDbDefault: IPageEntry[] = pagesDbDefaultJson;
 
+    private async initDatabase() {
+        const response = await fetch(browser.runtime.getURL('sql-wasm.wasm'));
+        const wasmBinary = await response.arrayBuffer();
+
+        const SQL = await initSqlJs({
+            wasmBinary, // this bypasses any need for locateFile()
+        });
+
+        // Step 3: Create the in-memory database
+        const db = new SQL.Database();
+
+        return db;
+    }
+
     // load the baked in pagesdb json as an initial db, just in case...
     public initDefaultPages(): void {
         this.setPages(PagesDB.pagesDbDefault);
+
+        this.initDatabase().then((db) => {
+            db.run('CREATE TABLE IF NOT EXISTS test(col1 TEXT);');
+            db.run('INSERT INTO test(col1) VALUES (?)', ['hello']);
+            const res = db.exec('SELECT * FROM test;');
+            console.log(res);
+        });
     }
 
     public getDefaultPages(): readonly IPageEntry[] {
