@@ -48,7 +48,7 @@ export class Main {
             // Update badge text with total pages found
             void browser.action.setBadgeText({ text: pages.totalPagesFound.toString() });
 
-            if (Preferences.browserNotificationsEnabled.value) {
+            if (Preferences.isEnabled.value && Preferences.browserNotificationsEnabled.value) {
                 // Example: show a notification about the found pages
                 // NOTE: Requires "notifications" permission in your manifest.json
                 void browser.notifications.create({
@@ -58,7 +58,13 @@ export class Main {
                     message: `Found ${pages.totalPagesFound.toString()} page(s).`,
                 });
             }
-            if (Preferences.pageNotificationsEnabled.value) {
+            if (Preferences.isEnabled.value && Preferences.pageNotificationsEnabled.value) {
+                console.log({
+                    preferences: {
+                        isEnabled: Preferences.isEnabled.value,
+                        pageNotificationsEnabled: Preferences.pageNotificationsEnabled.value,
+                    },
+                });
                 const message = `Found ${pages.totalPagesFound.toString()} CAT page(s).`;
                 domMessenger
                     .showInPageNotification(message)
