@@ -51,38 +51,49 @@ export class Main {
             Promise.all([
                 Preferences.getPreference(Preferences.IS_ENABLED_KEY),
                 Preferences.getPreference(Preferences.BROWSER_NOTIFICATIONS_ENABLED_KEY),
-            ]).then(([isEnabled, browserNotificationsEnabled]) => {
-                if (isEnabled && browserNotificationsEnabled) {
-                    // Example: show a notification about the found pages
-                    // NOTE: Requires "notifications" permission in your manifest.json
-                    void browser.notifications.create({
-                        type: 'basic',
-                        iconUrl: browser.runtime.getURL('alert.png'),
-                        title: 'CAT Pages Found',
-                        message: `Found ${pages.totalPagesFound.toString()} page(s).`,
-                    });
-                }
-            });
+            ])
+                .then(([isEnabled, browserNotificationsEnabled]) => {
+                    if (isEnabled && browserNotificationsEnabled) {
+                        // Example: show a notification about the found pages
+                        // NOTE: Requires "notifications" permission in your manifest.json
+                        void browser.notifications.create({
+                            type: 'basic',
+                            iconUrl: browser.runtime.getURL('alert.png'),
+                            title: 'CAT Pages Found',
+                            message: `Found ${pages.totalPagesFound.toString()} page(s).`,
+                        });
+                    }
+                })
+                .catch((error: unknown) =>
+                    console.error('Failed to get preferences to send browser notification:', error)
+                );
             Promise.all([
                 Preferences.getPreference(Preferences.IS_ENABLED_KEY),
                 Preferences.getPreference(Preferences.PAGE_NOTIFICATIONS_ENABLED_KEY),
-            ]).then(([isEnabled, pageNotificationsEnabled]) => {
-                if (isEnabled && pageNotificationsEnabled) {
-                    const message = `Found ${pages.totalPagesFound.toString()} CAT page(s).`;
-                    domMessenger
-                        .showInPageNotification(message)
-                        .then(() => console.log('In-page notification shown.'))
-                        .catch((error: unknown) => {
-                            if (error instanceof Error && error.message.includes('Receiving end does not exist')) {
-                                console.warn(
-                                    `Failed to send in-page notification (tab might be inactive or closed/navigated away before message was sent): ${error.message}`
-                                );
-                            } else {
-                                console.error('Failed to show in-page notification due to unexpected error:', error);
-                            }
-                        });
-                }
-            });
+            ])
+                .then(([isEnabled, pageNotificationsEnabled]) => {
+                    if (isEnabled && pageNotificationsEnabled) {
+                        const message = `Found ${pages.totalPagesFound.toString()} CAT page(s).`;
+                        domMessenger
+                            .showInPageNotification(message)
+                            .then(() => console.log('In-page notification shown.'))
+                            .catch((error: unknown) => {
+                                if (error instanceof Error && error.message.includes('Receiving end does not exist')) {
+                                    console.warn(
+                                        `Failed to send in-page notification (tab might be inactive or closed/navigated away before message was sent): ${error.message}`
+                                    );
+                                } else {
+                                    console.error(
+                                        'Failed to show in-page notification due to unexpected error:',
+                                        error
+                                    );
+                                }
+                            });
+                    }
+                })
+                .catch((error: unknown) =>
+                    console.error('Failed to get preferences to send in-page notification:', error)
+                );
         } else {
             // Revert badge text back to "on" or "off" as set by indicateStatus
             this.indicateStatus();
@@ -90,21 +101,23 @@ export class Main {
     }
 
     notify(message: string) {
-        Preferences.getPreference(Preferences.BROWSER_NOTIFICATIONS_ENABLED_KEY).then((browserNotificationsEnabled) => {
-            if (browserNotificationsEnabled) {
-                const notificationId = 'abc123';
-                const options: browser.Notifications.CreateNotificationOptions = {
-                    type: 'basic',
-                    iconUrl: browser.runtime.getURL('alert.png'),
-                    title: 'Hey',
-                    message,
-                };
+        Preferences.getPreference(Preferences.BROWSER_NOTIFICATIONS_ENABLED_KEY)
+            .then((browserNotificationsEnabled) => {
+                if (browserNotificationsEnabled) {
+                    const notificationId = 'abc123';
+                    const options: browser.Notifications.CreateNotificationOptions = {
+                        type: 'basic',
+                        iconUrl: browser.runtime.getURL('alert.png'),
+                        title: 'Hey',
+                        message,
+                    };
 
-                void browser.notifications.create(notificationId, options);
-            } else {
-                console.log('Browser notifications are disabled. Skipping notification.');
-            }
-        });
+                    void browser.notifications.create(notificationId, options);
+                } else {
+                    console.log('Browser notifications are disabled. Skipping notification.');
+                }
+            })
+            .catch((error: unknown) => console.error('Failed to get preferences to send browser notification:', error));
     }
 
     /**
