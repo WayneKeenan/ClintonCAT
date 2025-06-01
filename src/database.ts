@@ -1,5 +1,6 @@
 import escapeRegex from '@/utils/helpers/escape-regex';
 import pagesDbDefaultJson from '../data/pages_db.json'; // assert { type: 'json' };
+const Fuse = require('fuse.js');
 
 export interface IPageEntry {
     pageId: number;
@@ -170,23 +171,49 @@ export class PagesDB {
         const lowerQueryWords = query.toLowerCase().split(/\s+/);
         const results = new CATWikiPageSearchResults();
 
-        const pageEntries = this.pagesList
-            .map((pageEntry) => {
-                const lowerTitle = pageEntry.pageTitle.toLowerCase();
-                let matchCount = 0;
-                for (const word of lowerQueryWords) {
-                    // Use word boundaries to reduce false positives
-                    // and escape special regex characters to handle queries like "(test)".
-                    const regex = new RegExp(`\\b${escapeRegex(word)}\\b`, 'i');
-                    if (regex.test(lowerTitle)) {
-                        matchCount++;
-                    }
-                }
-                return { pageEntry, matchCount };
-            })
-            .filter(({ matchCount }) => (matchAllWords ? matchCount === lowerQueryWords.length : matchCount > 0))
-            .sort((a, b) => b.matchCount - a.matchCount)
-            .map(({ pageEntry }) => pageEntry);
+        // const pageEntries = this.pagesList
+        //     .map((pageEntry) => {
+        //         const lowerTitle = pageEntry.pageTitle.toLowerCase();
+        //         let matchCount = 0;
+        //         for (const word of lowerQueryWords) {
+        //             // Use word boundaries to reduce false positives
+        //             // and escape special regex characters to handle queries like "(test)".
+        //             const regex = new RegExp(`\\b${escapeRegex(word)}\\b`, 'i');
+        //             if (regex.test(lowerTitle)) {
+        //                 matchCount++;
+        //             }
+        //         }
+        //         return { pageEntry, matchCount };
+        //     })
+        //     .filter(({ matchCount }) => (matchAllWords ? matchCount === lowerQueryWords.length : matchCount > 0))
+        //     .sort((a, b) => b.matchCount - a.matchCount)
+        //     .map(({ pageEntry }) => pageEntry);
+
+        const fuseOptions = {
+            isCaseSensitive: false,
+            // includeScore: false,
+            ignoreDiacritics: true,
+            shouldSort: true,
+            // includeMatches: true,
+            //findAllMatches: matchAllWords,
+            minMatchCharLength: 2,
+            // location: 0,
+            // threshold: 0.6,
+            // distance: 100,
+            useExtendedSearch: true,
+            ignoreLocation: true,
+            // ignoreFieldNorm: false,
+            // fieldNormWeight: 1,
+            keys: ['pageTitle'],
+        };
+
+        console.log('-------------------------------------------------------');
+        console.log(this.pagesList);
+        console.log(query);
+        const fuse = new Fuse(this.pagesList, fuseOptions);
+        const searchResults = fuse.search(query);
+        console.log(searchResults);
+        const pageEntries = searchResults as IPageEntry[];
 
         results.addPageEntries(pageEntries);
         return results;

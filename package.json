@@ -73,6 +73,7 @@
     },
     "dependencies": {
         "classnames": "^2.5.1",
+        "fuse.js": "^7.1.0",
         "tldts": "^6.1.79"
     }
 }
