@@ -32,9 +32,9 @@ const _getActiveTabDomain = async (): Promise<Nullable<string>> => {
 };
 
 const Popup = () => {
-    const [isEnabled, setIsEnabled] = useState<boolean>(false);
-    const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState<boolean>(true);
-    const [pageNotificationsEnabled, setPageNotificationsEnabled] = useState<boolean>(true);
+    const [isEnabled, setIsEnabled] = useState<Nullable<boolean>>(null);
+    const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState<Nullable<boolean>>(null);
+    const [pageNotificationsEnabled, setPageNotificationsEnabled] = useState<Nullable<boolean>>(null);
     const [_currentUrl, setCurrentUrl] = useState<string | null>(null);
     const [_currentDomain, setCurrentDomain] = useState<string | null>(null);
     const [_domainsChanged, setDomainsChanged] = useState<boolean>(false);
@@ -212,6 +212,10 @@ const Popup = () => {
     const goToOptions = () => {
         void browser.runtime.openOptionsPage();
     };
+
+    if (isEnabled === null || browserNotificationsEnabled === null || pageNotificationsEnabled === null) {
+        return <div></div>;
+    }
 
     return (
         <div className={styles.popupContainer}>
