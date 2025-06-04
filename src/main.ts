@@ -33,8 +33,10 @@ export class Main {
     }
 
     indicateStatus() {
-        void browser.action.setBadgeText({
-            text: Preferences.isEnabled.value ? 'on' : 'off',
+        Preferences.getPreference(Preferences.IS_ENABLED_KEY).then((isEnabled) => {
+            void browser.action.setBadgeText({
+                text: isEnabled ? 'on' : 'off',
+            });
         });
     }
 

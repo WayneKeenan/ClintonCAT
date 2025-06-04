@@ -46,6 +46,9 @@ class Preferences {
         // Set up default callbacks
         this.isEnabled.addListener(this.IS_ENABLED_KEY, (result: boolean) => {
             void this.setPreference(Preferences.IS_ENABLED_KEY, result);
+            void browser.action.setBadgeText({
+                text: result ? 'on' : 'off',
+            });
         });
 
         this.domainExclusions.addListener(this.DOMAIN_EXCLUSIONS_KEY, (result: string[]) => {
