@@ -36,6 +36,7 @@ const InpagenotificationPage = ({ page }: IInpagenotificationPage) => {
         storedPage.timestamp = Date.now();
 
         LocalStorage.writePage(storedPage);
+        LocalStorage.save();
 
         if (componentReferance) {
             componentReferance.current?.remove();
