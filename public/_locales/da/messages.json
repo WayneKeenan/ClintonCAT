@@ -1,0 +1,73 @@
+{
+    "EXTENSION_OPTIONS": {
+        "message": "Udvidelses Indstillinger"
+    },
+    "OTHER_SETTINGS": {
+        "message": "Andre Indstillinger"
+    },
+    "ENTER_DOMAIN": {
+        "message": "Indtast domain"
+    },
+    "EXCLUDED_DOMAINS": {
+        "message": "Udeluk domain"
+    },
+    "DOMAIN_NOT_VALID": {
+        "message": "$domainInput$ er ikke et gyldigt domain",
+        "placeholders": {
+            "domainInput": {
+                "content": "$1"
+            }
+        }
+    },
+    "ADD": {
+        "message": "Tilføj"
+    },
+    "CLEAR": {
+        "message": "Tøm"
+    },
+    "TEST_NOTIFICATION": {
+        "message": "Test meddelelse"
+    },
+    "TEST_BROWSER_NOTIFICATION_MESSAGE": {
+        "message": "Detter er en browser test meddelelse"
+    },
+    "TEST_PAGE_NOTIFICATION_MESSAGE": {
+        "message": "Detter er en side test meddelelse"
+    },
+    "CLINTONCAT_IS_ENABLED": {
+        "message": "ClintonCAT er tændt"
+    },
+    "CLINTONCAT_IS_DISABLED": {
+        "message": "ClintonCAT is slukket"
+    },
+    "ENABLE_BROWSER_NOTIFICATIONS": {
+        "message": "Tænd browser meddelelser"
+    },
+    "DISABLE_BROWSER_NOTIFICATIONS": {
+        "message": "Sluk browser meddelelser"
+    },
+    "ENABLE_PAGE_NOTIFICATIONS": {
+        "message": "Tænd side meddelelser"
+    },
+    "DISABLE_PAGE_NOTIFICATIONS": {
+        "message": "Sluk side meddelelser"
+    },
+    "OPEN_CAT_PAGE": {
+        "message": "Åben CAT side"
+    },
+    "ALLOW_THIS_SITE": {
+        "message": "Tilad denne side"
+    },
+    "EXCLUDE_THIS_SITE": {
+        "message": "Udeluk denne side"
+    },
+    "TEST_BROWSER_NOTIFICATION": {
+        "message": "Test Browser meddelelser"
+    },
+    "TEST_PAGE_NOTIFICATION": {
+        "message": "Test side meddelelser"
+    },
+    "GO_TO_OPTIONS": {
+        "message": "Gå til indstillinger"
+    }
+}

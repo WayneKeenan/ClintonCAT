@@ -24,5 +24,6 @@
             "id": "{11e4e61d-44d6-4d8c-af69-8d879d411a84}",
             "strict_min_version": "58.0"
         }
-    }
+    },
+    "default_locale": "en"
 }

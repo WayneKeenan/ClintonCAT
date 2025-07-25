@@ -8,7 +8,10 @@ import BrowserLocalStorage from '@/storage/browser/browser-local-storage';
 import BrowserSyncStorage from '@/storage/browser/browser-sync-storage';
 import * as styles from './Options.module.css';
 
+import { useI18n } from '@/utils/helpers/localized';
+
 const Options = () => {
+    const { t } = useI18n();
     const [items, setItems] = useState<string[]>([]);
     const [domainInput, setDomainInput] = useState('');
     const [domainError, setDomainError] = useState('');
@@ -30,7 +33,7 @@ const Options = () => {
     const addItem = () => {
         const parsedDomain = getDomain(domainInput);
         if (parsedDomain === null) {
-            return setDomainError(`"${domainInput}" is not a valid domain`);
+            return setDomainError(t('DOMAIN_NOT_VALID', [domainInput]));
         }
         Preferences.domainExclusions.add(parsedDomain);
         setDomainInput('');
@@ -54,10 +57,10 @@ const Options = () => {
 
     return (
         <div className={styles.optionsPage}>
-            <h1 className={styles.pageTitle}>Extension Options</h1>
+            <h1 className={styles.pageTitle}>{t('EXTENSION_OPTIONS')}</h1>
             <div className={styles.optionsContainer}>
                 <div className={styles.settingsColumn}>
-                    <h2 className={styles.columnTitle}>Excluded Domains</h2>
+                    <h2 className={styles.columnTitle}>{t('EXCLUDED_DOMAINS')}</h2>
                     <div className={styles.settingsContainer}>
                         <form onSubmit={handleSubmit} className={styles.form}>
                             <input
@@ -65,17 +68,17 @@ const Options = () => {
                                 value={domainInput}
                                 onFocus={() => setDomainError('')}
                                 onChange={(e) => setDomainInput(e.target.value.trim())}
-                                placeholder="Enter a domain"
+                                placeholder={t('ENTER_DOMAIN')}
                                 className={styles.inputField}
                             />
                             <button type="submit" className={classNames(styles.btn, styles.addBtn)}>
-                                Add
+                                {t('ADD')}
                             </button>
                             <button
                                 type="button"
                                 onClick={clearList}
                                 className={classNames(styles.btn, styles.clearBtn)}>
-                                Clear
+                                {t('CLEAR')}
                             </button>
                         </form>
                         {domainError && <div className={styles.errorMessage}>{domainError}</div>}
@@ -93,7 +96,7 @@ const Options = () => {
                 </div>
 
                 <div className={styles.settingsColumn}>
-                    <h2 className={styles.columnTitle}>Other Settings</h2>
+                    <h2 className={styles.columnTitle}>{t('OTHER_SETTINGS')}</h2>
                     <div className={styles.settingsContainer}>
                         <p>TODO</p>
                         <label className={styles.toggleLabel}>

@@ -11,6 +11,8 @@ import { DOMMessengerAction } from '@/common/helpers/dom-messenger.types';
 import browser from 'webextension-polyfill';
 import { Nullable } from '@/utils/types';
 
+import { useI18n } from '@/utils/helpers/localized';
+
 const getDomainFromUrl = (url: string): Nullable<string> => {
     try {
         return new URL(url).hostname;
@@ -32,6 +34,7 @@ const _getActiveTabDomain = async (): Promise<Nullable<string>> => {
 };
 
 const Popup = () => {
+    const { t } = useI18n();
     const [isEnabled, setIsEnabled] = useState<boolean>(false);
     const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState<boolean>(true);
     const [pageNotificationsEnabled, setPageNotificationsEnabled] = useState<boolean>(true);
@@ -102,9 +105,10 @@ const Popup = () => {
     const testBrowserNotification = () => {
         console.log('testBrowserNotification', Preferences.browserNotificationsEnabled.value);
         if (Preferences.browserNotificationsEnabled.value) {
-            sendMessage('notify', { title: 'Test Notification', message: 'This is a test browser notification' }).catch(
-                console.error
-            );
+            sendMessage('notify', {
+                title: t('TEST_NOTIFICATION_MESSAGE'),
+                message: t('TEST_BROWSER_NOTIFICATION_MESSAGE'),
+            }).catch(console.error);
         } else {
             console.log('Browser notifications are disabled.');
         }
@@ -121,7 +125,7 @@ const Popup = () => {
 
                     const messageToSend = {
                         action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION,
-                        message: 'This is a test page notification',
+                        message: t('TEST_PAGE_NOTIFICATION'),
                         pages: [],
                     };
 
@@ -218,13 +222,17 @@ const Popup = () => {
             <p className={styles.popupTitle}>ClintonCAT</p>
             <div className={styles.divider} />
             <label className={styles.toggleLabel}>
-                <span>ClintonCAT is {isEnabled ? 'enabled' : 'disabled'}</span>
+                <span>{isEnabled ? t('CLINTONCAT_IS_ENABLED') : t('CLINTONCAT_IS_DISABLED')}</span>
                 <input type="checkbox" checked={isEnabled} onChange={handleToggleEnabled} />
                 <span className={classNames(styles.toggleSlider, { [styles.toggled]: isEnabled })} />
             </label>
             <div className={styles.divider} />
             <label className={styles.toggleLabel}>
-                <span>{browserNotificationsEnabled ? 'Disable' : 'Enable'} Browser Notifications</span>
+                <span>
+                    {browserNotificationsEnabled
+                        ? t('ENABLE_BROWSER_NOTIFICATIONS')
+                        : t('DISABLE_BROWSER_NOTIFICATIONS')}
+                </span>
                 <input
                     type="checkbox"
                     checked={browserNotificationsEnabled}
@@ -234,29 +242,31 @@ const Popup = () => {
             </label>
             <div className={styles.divider} />
             <label className={styles.toggleLabel}>
-                <span>{pageNotificationsEnabled ? 'Disable' : 'Enable'} Page Notifications</span>
+                <span>
+                    {pageNotificationsEnabled ? t('DISABLE_PAGE_NOTIFICATIONS') : t('ENABLE_PAGE_NOTIFICATIONS')}
+                </span>
                 <input type="checkbox" checked={pageNotificationsEnabled} onChange={handleTogglePageNotifications} />
                 <span className={classNames(styles.toggleSlider, { [styles.toggled]: pageNotificationsEnabled })} />
             </label>
             <div className={styles.divider} />
             <div className={styles.buttonGroup}>
                 <button className={styles.popupButton} onClick={openCATPage}>
-                    Open CAT page
+                    {t('OPEN_CAT_PAGE')}
                 </button>
                 <button className={styles.popupButton} onClick={() => void allowThisSite()}>
-                    Allow this site
+                    {t('ALLOW_THIS_SITE')}
                 </button>
                 <button className={styles.popupButton} onClick={() => void excludeThisSite()}>
-                    Exclude this site
+                    {t('EXCLUDE_THIS_SITE')}
                 </button>
                 <button className={styles.popupButton} onClick={() => testBrowserNotification()}>
-                    Test Browser Notification
+                    {t('TEST_BROWSER_NOTIFICATION')}
                 </button>
                 <button className={styles.popupButton} onClick={() => void testPageNotification()}>
-                    Test Page Notification
+                    {t('TEST_PAGE_NOTIFICATION')}
                 </button>
                 <button className={styles.popupButton} onClick={goToOptions}>
-                    Go to Options
+                    {t('GO_TO_OPTIONS')}
                 </button>
             </div>
             <div className={styles.divider} />

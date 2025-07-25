@@ -1,0 +1,65 @@
+{
+    "EXTENSION_OPTIONS": {
+        "message": "Extension Options"
+    },
+    "OTHER_SETTINGS": {
+        "message": "Other Settings"
+    },
+    "ENTER_DOMAIN": {
+        "message": "Enter Domain"
+    },
+    "EXCLUDED_DOMAINS": {
+        "message": "Excluded Domains"
+    },
+    "ADD": {
+        "message": "ADD"
+    },
+    "CLEAR": {
+        "message": "CLEAR"
+    },
+    "TEST_NOTIFICATION": {
+        "message": "Test Notification"
+    },
+    "TEST_BROWSER_NOTIFICATION_MESSAGE": {
+        "message": "This is a test browser notification"
+    },
+    "TEST_PAGE_NOTIFICATION_MESSAGE": {
+        "message": "This is a test page notification"
+    },
+    "CLINTONCAT_IS_ENABLED": {
+        "message": "ClintonCAT is enabled"
+    },
+    "CLINTONCAT_IS_DISABLED": {
+        "message": "ClintonCAT is disabled"
+    },
+    "ENABLE_BROWSER_NOTIFICATIONS": {
+        "message": "Enable Browser Notifications"
+    },
+    "DISABLE_BROWSER_NOTIFICATIONS": {
+        "message": "Disable Browser Notifications"
+    },
+    "ENABLE_PAGE_NOTIFICATIONS": {
+        "message": "Enable Page Notifications"
+    },
+    "DISABLE_PAGE_NOTIFICATIONS": {
+        "message": "Disable Page Notifications"
+    },
+    "OPEN_CAT_PAGE": {
+        "message": "Open CAT page"
+    },
+    "ALLOW_THIS_SITE": {
+        "message": "Allow this site"
+    },
+    "EXCLUDE_THIS_SITE": {
+        "message": "Exclude this site"
+    },
+    "TEST_BROWSER_NOTIFICATION": {
+        "message": "Test Browser Notification"
+    },
+    "TEST_PAGE_NOTIFICATION": {
+        "message": "Test Page Notification"
+    },
+    "GO_TO_OPTIONS": {
+        "message": "Go to Options"
+    }
+}
