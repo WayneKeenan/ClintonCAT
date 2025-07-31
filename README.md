@@ -14,7 +14,7 @@
 # Under development
 
 Chrome browser extension that automatically searches
-[Rossmann's Consumer Rights Wiki (CRW)](https://consumerrights.wiki) 
+[Rossmann's Consumer Rights Wiki (CRW)](https://consumerrights.wiki)
 for articles related to the website you're currently visiting.<br>
 
 > All references found by this software are not part of ClintonCAT and are provided to the end-user under `CC-4.0-BY-SA licensing` by the originating website [consumerrights.wiki](https://consumerrights.wiki/).
