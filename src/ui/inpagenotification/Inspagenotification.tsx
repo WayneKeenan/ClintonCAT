@@ -8,23 +8,49 @@ export interface IInpagenotificationPage {
     page: PageEntry;
 }
 
-const InpagenotificationPage = ({ page }: IInpagenotificationPage) => {
-    const componentReferance = React.createRef<HTMLParagraphElement>();
+export interface IInpagenotificationPageMenu {
+    pageReferance: React.RefObject<HTMLParagraphElement | null>;
+}
 
-    const showPage = Date.now() > LocalStorage.readPage(page.pageId).timestamp + 60 * 60 * 1000; // curent mute 1 hour, TODO: should come from an option.
+export interface IInpagenotificationPageOptions {
+    showMore: boolean;
+    showMute: boolean;
+    showHide: boolean;
+}
 
-    const closePage = () => {
-        const storedPage = LocalStorage.readPage(page.pageId);
+export interface IInpagenotificationMessage {
+    message: string;
+}
 
-        storedPage.timestamp = Date.now();
+export interface IInpagenotificationCategory {
+    pages: [string, PageEntry[]];
+}
 
-        LocalStorage.writePage(storedPage);
+export interface IInpagenotification {
+    containerId: string;
+    message: string;
+    pages: IPageEntry[];
+}
 
-        if (componentReferance) {
-            componentReferance.current?.remove();
-        }
-    };
+const InpagenotificationPageMenu = ({
+    page,
+    pageReferance,
+    showMore,
+    showMute,
+    showHide,
+}: IInpagenotificationPage & IInpagenotificationPageMenu & IInpagenotificationPageOptions) => {
+    return (
+        <>
+            <div className="page-menu">
+                {showMore && <InpagenotificationPageMore />}
+                {showMute && <InpagenotificationPageMute page={page} pageReferance={pageReferance} />}
+                {showHide && <InpagenotificationPageHide page={page} pageReferance={pageReferance} />}
+            </div>
+        </>
+    );
+};
 
+const InpagenotificationPageMore = () => {
     const seeMore = (event: React.MouseEvent<HTMLElement>) => {
         event.preventDefault();
         const categoryHeader = event.currentTarget as HTMLElement;
@@ -37,23 +63,102 @@ const InpagenotificationPage = ({ page }: IInpagenotificationPage) => {
             }
         }
     };
+    return (
+        <>
+            <span className="page-more" onClick={seeMore}>
+                ⯈
+            </span>
+        </>
+    );
+};
+
+const InpagenotificationPageMute = ({ page, pageReferance }: IInpagenotificationPage & IInpagenotificationPageMenu) => {
+    const mutePage = () => {
+        const storedPage = LocalStorage.readPage(page.pageId);
+
+        storedPage.timestamp = Date.now();
+
+        LocalStorage.writePage(storedPage);
+
+        if (pageReferance) {
+            pageReferance.current?.remove();
+        }
+    };
+    return (
+        <>
+            <span className="page-mute" onClick={mutePage}>
+                🕑
+            </span>
+        </>
+    );
+};
+
+const InpagenotificationPageHide = ({ page, pageReferance }: IInpagenotificationPage & IInpagenotificationPageMenu) => {
+    const hidePage = () => {
+        const storedPage = LocalStorage.readPage(page.pageId);
+
+        storedPage.dismissed = page.pageTitle; // TODO: Replace pageTitle with revision/timestamp
+        LocalStorage.writePage(storedPage);
+
+        if (pageReferance) {
+            pageReferance.current?.remove();
+        }
+    };
+    return (
+        <>
+            <span className="page-hide" onClick={hidePage}>
+                ✖
+            </span>
+        </>
+    );
+};
+
+const InpagenotificationPageInfo = ({ page }: IInpagenotificationPage) => {
+    return (
+        <>
+            <div className="page-info hidden">{page.popupText}</div>
+        </>
+    );
+};
+
+const InpagenotificationPageLink = ({ page }: IInpagenotificationPage) => {
+    return (
+        <>
+            <a href={page.url()} target="_blank">
+                {page.pageTitle}
+            </a>
+        </>
+    );
+};
+
+const InpagenotificationPage = ({ page }: IInpagenotificationPage) => {
+    const componentReferance = React.createRef<HTMLParagraphElement>();
+
+    const showMore = true; // TODO, should come from an option?
+    const showMute = true; // TODO, should come from an option?
+    const showHide = true; // TODO, should come from an option?
+
+    const storedPage = LocalStorage.readPage(page.pageId);
+    let showPage = Date.now() > storedPage.timestamp + 60 * 60 * 1000; // curent mute 1 hour, TODO: should come from an option.
+
+    // TODO: Replace pageTitle with revision/timestamp
+    if (storedPage.dismissed == page.pageTitle) {
+        showPage = false;
+    }
 
     if (showPage) {
         return (
             <>
                 <div className="page" ref={componentReferance}>
-                    <div className="page-menu">
-                        <span className="page-more" onClick={seeMore}>
-                            ⯈
-                        </span>
-                        <span className="page-close" onClick={closePage}>
-                            ✖
-                        </span>
-                    </div>
-                    <a href={page.url()} target="_blank">
-                        {page.pageTitle}
-                    </a>
-                    <div className="page-info hidden">{page.popupText}</div>
+                    <InpagenotificationPageMenu
+                        page={page}
+                        showMore={showMore}
+                        showMute={showMute}
+                        showHide={showHide}
+                        pageReferance={componentReferance}
+                    />
+                    <InpagenotificationPageLink page={page} />
+                    {showMore && <InpagenotificationPageInfo page={page} />}
                 </div>
             </>
         );
@@ -61,10 +166,6 @@ const InpagenotificationPage = ({ page }: IInpagenotificationPage) => {
         return <></>;
     }
 };
-
-export interface IInpagenotificationMessage {
-    message: string;
-}
 
 const InpagenotificationMessage = ({ message }: IInpagenotificationMessage) => {
     if (message && message.length > 0) {
@@ -77,10 +178,6 @@ const InpagenotificationMessage = ({ message }: IInpagenotificationMessage) => {
         return <></>;
     }
 };
-
-export interface IInpagenotificationCategory {
-    pages: [string, PageEntry[]];
-}
 
 const InpagenotificationCategory = ({ pages }: IInpagenotificationCategory) => {
     const categoryTitle = pages[0];
@@ -117,12 +214,6 @@ const InpagenotificationCategory = ({ pages }: IInpagenotificationCategory) => {
         return <></>;
     }
 };
-
-export interface IInpagenotification {
-    containerId: string;
-    message: string;
-    pages: IPageEntry[];
-}
 
 const Inpagenotification = ({ containerId, message, pages }: IInpagenotification) => {
     /**
@@ -266,16 +357,23 @@ const Inpagenotification = ({ containerId, message, pages }: IInpagenotification
                     cursor: pointer;
                     font-weight:
                     bold;
-                 
+                }
+
+                .page-menu > * {
                     margin-left: 10px;
                 }
 
-                .page-more {
-                    margin-right: 10px;
+                .page-close {
                 }
 
-                .page-close {
-                }                    
+                .page-more {
+                }
+
+                .page-mute {
+                }
+                
+                .page-hide {
+                }
 
                 .wikilink {
                     height: 100%;
