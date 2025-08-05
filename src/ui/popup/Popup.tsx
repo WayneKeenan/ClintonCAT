@@ -35,9 +35,9 @@ const _getActiveTabDomain = async (): Promise<Nullable<string>> => {
 
 const Popup = () => {
     const { t } = useI18n();
-    const [isEnabled, setIsEnabled] = useState<boolean>(false);
-    const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState<boolean>(true);
-    const [pageNotificationsEnabled, setPageNotificationsEnabled] = useState<boolean>(true);
+    const [isEnabled, setIsEnabled] = useState<Nullable<boolean>>(null);
+    const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState<Nullable<boolean>>(null);
+    const [pageNotificationsEnabled, setPageNotificationsEnabled] = useState<Nullable<boolean>>(null);
 
     const [_currentUrl, setCurrentUrl] = useState<string | null>(null);
     const [_currentDomain, setCurrentDomain] = useState<string | null>(null);
