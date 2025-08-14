@@ -38,10 +38,18 @@ const pageInfoHandler: MessageHandler<'pageInfo'> = (payload, context) => {
     });
 };
 
+const notifyUpdateHandler: MessageHandler<'notifyUpdate'> = (payload, context) => {
+    return new Promise(() => {
+        console.log('Notify update Received, triggering page load handler:', payload);
+        context.main.onNotifyUpdate(payload.pageId, payload.action);
+    });
+};
+
 const handlers = {
     log: logHandler,
     notify: notifyHandler,
     pageInfo: pageInfoHandler,
+    notifyUpdate: notifyUpdateHandler,
 } satisfies { [K in keyof MessageMap]: MessageHandler<K> };
 
 function messageHandler(
