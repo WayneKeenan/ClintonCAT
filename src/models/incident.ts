@@ -15,6 +15,9 @@ export interface IIncidentEntry {
 }
 
 export interface IIncident {
+    pageName: string;
+    pageId: number;
+
     company: string;
     description: string;
     endDate: Date;

@@ -12,6 +12,9 @@ export interface ICompanyEntry {
 }
 
 export interface ICompany {
+    pageName: string;
+    pageId: number;
+
     description: string;
     industries: string[];
     parentCompany: string;

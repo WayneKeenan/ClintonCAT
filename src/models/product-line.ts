@@ -11,6 +11,9 @@ export interface IProductLineEntry {
 }
 
 export interface IProductLine {
+    pageName: string;
+    pageId: number;
+
     categories: string[];
     company: string;
     description: string;
