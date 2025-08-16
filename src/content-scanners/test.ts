@@ -1,5 +1,5 @@
 import { IContentScannerPlugin, IElementData, IScanParameters } from '@/common/services/content-scanner.types';
-import { CATWikiPageSearchResults, PageEntry } from '@/database';
+import { CATWikiPageSearchResults } from '@/database';
 import browser from 'webextension-polyfill';
 
 // Simple test for simple test page, e.g.
@@ -52,10 +52,10 @@ export class TestScanner implements IContentScannerPlugin {
 
                 if (searchResult.totalPagesFound) {
                     console.log('Adding the CAT html: ', alertImgUrl);
-                    const pageEntry = pageResults.pageEntries[0] as PageEntry;
+                    const pageEntry = pageResults.pageEntries[0];
                     console.dir(pageEntry);
                     const pageUrl: string = pageEntry.url();
-                    const popupText: string = pageEntry.popupText;
+                    const popupText: string = pageEntry.description;
                     await params.dom.createElement(
                         divId,
                         'p',

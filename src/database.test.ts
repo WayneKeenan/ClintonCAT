@@ -1,30 +1,62 @@
-import { PageEntry, PagesDB } from './database';
+import { PagesDB } from './database';
+import { CompanyPage } from './models/company';
+import { IncidentPage } from './models/incident';
+import { ProductPage } from './models/product';
+import { ProductLinePage } from './models/product-line';
 
 describe('PagesDB', () => {
     describe('PagesDB page entries', () => {
         test('should find page entries', () => {
             const pagesDb = new PagesDB();
 
-            pagesDb.setPages([
-                {
-                    pageId: 1,
-                    pageTitle: 'something1',
-                    popupText: '(Placeholder text for article in Test1)',
-                    category: 'Test1',
-                },
-                {
-                    pageId: 2,
-                    pageTitle: 'something2',
-                    popupText: '(Placeholder text for article in Test2)',
-                    category: 'Test2',
-                },
-                {
-                    pageId: 3,
-                    pageTitle: 'something3',
-                    popupText: '(Placeholder text for article in Test3)',
-                    category: 'Test3',
-                },
-            ]);
+            pagesDb.setPages({
+                Company: [
+                    {
+                        PageID: '1',
+                        PageName: 'something1',
+                        Description: 'test description',
+                        Industry: '',
+                        ParentCompany: '',
+                        Type: '',
+                        Website: '',
+                    },
+                ],
+                Incident: [
+                    {
+                        PageID: '1',
+                        PageName: 'something2',
+                        Company: '',
+                        Description: '',
+                        EndDate: '',
+                        Product: '',
+                        ProductLine: '',
+                        StartDate: '',
+                        Status: '',
+                        Type: '',
+                    },
+                ],
+                Product: [
+                    {
+                        PageID: '1',
+                        PageName: 'something3',
+                        Category: '',
+                        Company: '',
+                        Description: '',
+                        ProductLine: '',
+                        Website: '',
+                    },
+                ],
+                ProductLine: [
+                    {
+                        PageID: '1',
+                        PageName: 'something4',
+                        Description: 'test description',
+                        Category: '',
+                        Company: '',
+                        Website: '',
+                    },
+                ],
+            });
 
             const results1 = pagesDb.fuzzySearch('The something1');
             expect(results1.totalPagesFound).toBe(1);
@@ -40,47 +72,101 @@ describe('PagesDB', () => {
         beforeEach(() => {
             pagesDb = new PagesDB();
 
-            pagesDb.setPages([
-                { pageId: 1, pageTitle: 'Laptop Repair Info', popupText: 'Laptop info', category: 'Hardware' },
-                { pageId: 2, pageTitle: 'Laptop Repairs Q&A', popupText: 'Laptop Q&A', category: 'Hardware' },
-                {
-                    pageId: 3,
-                    pageTitle: 'Laptop is repairable',
-                    popupText: 'Laptop instructions',
-                    category: 'Hardware',
-                },
-                { pageId: 4, pageTitle: 'Phone Repair Shop', popupText: 'Phones are complex', category: 'Hardware' },
-                {
-                    pageId: 5,
-                    pageTitle: 'Laptop Keyboard tips',
-                    popupText: 'Laptop hardware tips',
-                    category: 'Hardware',
-                },
-                {
-                    pageId: 6,
-                    pageTitle: 'Laptop Repaired Success',
-                    popupText: 'Laptop fix success',
-                    category: 'Hardware',
-                },
-            ]);
+            pagesDb.setPages({
+                Company: [
+                    {
+                        PageID: '4',
+                        PageName: 'Phone Repair Shop',
+                        Description: 'Phones are complex',
+                        Industry: 'Hardware',
+                        ParentCompany: '',
+                        Type: '',
+                        Website: '',
+                    },
+                ],
+                Incident: [
+                    {
+                        PageID: '1',
+                        PageName: 'Laptop Repair Info',
+                        Company: 'Laptop',
+                        Description: 'Laptop info',
+                        EndDate: '',
+                        Product: '',
+                        ProductLine: '',
+                        StartDate: '',
+                        Status: '',
+                        Type: '',
+                    },
+                    {
+                        PageID: '2',
+                        PageName: 'Laptop Repairs Q&A',
+                        Company: 'Laptop',
+                        Description: 'Laptop Q&A',
+                        EndDate: '',
+                        Product: '',
+                        ProductLine: '',
+                        StartDate: '',
+                        Status: '',
+                        Type: '',
+                    },
+                    {
+                        PageID: '3',
+                        PageName: 'Laptop is repairable',
+                        Company: 'Laptop',
+                        Description: 'Laptop instructions',
+                        EndDate: '',
+                        Product: '',
+                        ProductLine: '',
+                        StartDate: '',
+                        Status: '',
+                        Type: '',
+                    },
+                    {
+                        PageID: '5',
+                        PageName: 'Laptop Keyboard tips',
+                        Company: 'Laptop',
+                        Description: 'Laptop hardware tips',
+                        EndDate: '',
+                        Product: '',
+                        ProductLine: '',
+                        StartDate: '',
+                        Status: '',
+                        Type: '',
+                    },
+                    {
+                        PageID: '6',
+                        PageName: 'Laptop Repaired Success',
+                        Company: 'Laptop',
+                        Description: 'Laptop fix success',
+                        EndDate: '',
+                        Product: '',
+                        ProductLine: '',
+                        StartDate: '',
+                        Status: '',
+                        Type: '',
+                    },
+                ],
+                Product: [],
+                ProductLine: [],
+            });
         });
 
         test('should match the single word "repair" only in whole-word contexts', () => {
             const results = pagesDb.fuzzySearch('repair');
-            const matchedTitles = results.pageEntries.map((entry) => entry.pageTitle);
+            const matchedTitles = results.pageEntries.map((entry) => entry.pageName);
 
-            expect(matchedTitles).toEqual(['Laptop Repair Info', 'Phone Repair Shop']);
+            expect(matchedTitles).toEqual(['Phone Repair Shop', 'Laptop Repair Info']);
         });
 
         test('should match any of the words: "laptop repair" when matchAllWords = false', () => {
             const results = pagesDb.fuzzySearch('laptop repair', false);
-            const matchedTitles = results.pageEntries.map((entry) => entry.pageTitle);
+            const matchedTitles = results.pageEntries.map((entry) => entry.pageName);
 
             expect(matchedTitles).toEqual([
                 'Laptop Repair Info', // matches "laptop" & "repair"
+                'Phone Repair Shop', // matches "repair"
                 'Laptop Repairs Q&A', // matches "laptop" but NOT "repair"
                 'Laptop is repairable', // matches "laptop" but NOT "repair"
-                'Phone Repair Shop', // matches "repair"
                 'Laptop Keyboard tips', // matches "laptop"
                 'Laptop Repaired Success', // matches "laptop" but NOT "repair"
             ]);
@@ -88,14 +174,14 @@ describe('PagesDB', () => {
 
         test('should require ALL words ("laptop" and "repair") when matchAllWords = true', () => {
             const results = pagesDb.fuzzySearch('laptop repair', true);
-            const matchedTitles = results.pageEntries.map((entry) => entry.pageTitle);
+            const matchedTitles = results.pageEntries.map((entry) => entry.pageName);
 
             expect(matchedTitles).toEqual(['Laptop Repair Info']);
         });
 
         test('should sort by descending number of matched words', () => {
             const results = pagesDb.fuzzySearch('laptop info repair');
-            const matchedTitles = results.pageEntries.map((entry) => entry.pageTitle);
+            const matchedTitles = results.pageEntries.map((entry) => entry.pageName);
 
             expect(matchedTitles[0]).toBe('Laptop Repair Info');
         });
@@ -106,38 +192,71 @@ describe('PagesDB', () => {
 
         beforeEach(() => {
             pagesDb = new PagesDB();
-            pagesDb.setPages([
-                {
-                    pageId: 1,
-                    pageTitle: 'LG G4 Fiasco',
-                    popupText: '(Placeholder text for article in LG)',
-                    category: 'LG',
-                },
-                {
-                    pageId: 2,
-                    pageTitle: 'LG',
-                    popupText: '(Placeholder text for article in Electronics companies)',
-                    category: 'Electronics companies',
-                },
-                {
-                    pageId: 3,
-                    pageTitle: 'LG refrigerator warranty scandal',
-                    popupText: '(Placeholder text for article in LG)',
-                    category: 'LG',
-                },
-                {
-                    pageId: 4,
-                    pageTitle: 'LG Television sale of personal data',
-                    popupText: '(Placeholder text for article in LG)',
-                    category: 'LG',
-                },
-                {
-                    pageId: 5,
-                    pageTitle: 'Xiaomi Phone unlock requirements and procedure',
-                    popupText: '(Placeholder text for article in Xiaomi)',
-                    category: 'Xiaomi',
-                },
-            ]);
+            pagesDb.setPages({
+                Company: [
+                    {
+                        PageID: '1',
+                        PageName: 'LG',
+                        Description: '(Placeholder text for article in Electronics companies)',
+                        Industry: 'Electronics companies',
+                        ParentCompany: '',
+                        Type: '',
+                        Website: '',
+                    },
+                ],
+                Incident: [
+                    {
+                        PageID: '2',
+                        PageName: 'LG G4 Fiasco',
+                        Company: 'LG',
+                        Description: '(Placeholder text for article in LG)',
+                        EndDate: '',
+                        Product: '',
+                        ProductLine: '',
+                        StartDate: '',
+                        Status: '',
+                        Type: '',
+                    },
+                    {
+                        PageID: '3',
+                        PageName: 'LG refrigerator warranty scandal',
+                        Company: 'LG',
+                        Description: '(Placeholder text for article in LG)',
+                        EndDate: '',
+                        Product: '',
+                        ProductLine: '',
+                        StartDate: '',
+                        Status: '',
+                        Type: '',
+                    },
+                    {
+                        PageID: '4',
+                        PageName: 'LG Television sale of personal data',
+                        Company: 'LG',
+                        Description: '(Placeholder text for article in LG)',
+                        EndDate: '',
+                        Product: '',
+                        ProductLine: '',
+                        StartDate: '',
+                        Status: '',
+                        Type: '',
+                    },
+                    {
+                        PageID: '5',
+                        PageName: 'Xiaomi Phone unlock requirements and procedure',
+                        Company: 'Xiaomi',
+                        Description: '(Placeholder text for article in Xiaomi)',
+                        EndDate: '',
+                        Product: '',
+                        ProductLine: '',
+                        StartDate: '',
+                        Status: '',
+                        Type: '',
+                    },
+                ],
+                Product: [],
+                ProductLine: [],
+            });
         });
 
         test('find only LG G4 phone Fiasco article', () => {
@@ -151,12 +270,27 @@ describe('PagesDB', () => {
 
         beforeEach(() => {
             pagesDb = new PagesDB();
-            pagesDb.setPages([{ pageId: 1, pageTitle: 'Apple', popupText: 'shiny stuff alert', category: 'Hardware' }]);
+            pagesDb.setPages({
+                Company: [
+                    {
+                        PageID: '1',
+                        PageName: 'Apple',
+                        Description: 'shiny stuff alert',
+                        Industry: 'Hardware',
+                        ParentCompany: '',
+                        Type: '',
+                        Website: '',
+                    },
+                ],
+                Incident: [],
+                Product: [],
+                ProductLine: [],
+            });
         });
 
         test('should match the single word "Apple" only in whole-word contexts', () => {
             const results = pagesDb.fuzzySearch('apple');
-            const matchedTitles = results.pageEntries.map((entry) => entry.pageTitle);
+            const matchedTitles = results.pageEntries.map((page) => page.pageName);
 
             expect(matchedTitles).toEqual(['Apple']);
         });
@@ -171,16 +305,14 @@ describe('PagesDB', () => {
         });
 
         test('ensure there is at least one page entry', () => {
-            const pages = pagesDb.getDefaultPages();
+            const pages = pagesDb.allPages;
             expect(pages.length).toBeGreaterThan(0);
         });
 
         test('ensure the first entry is a valid PageEntry', () => {
-            const pages = pagesDb.getDefaultPages();
+            const pages = pagesDb.allPages;
             expect(pages.length).toBeGreaterThan(0);
-            const page = new PageEntry(pages[0]);
-            expect(page.pageId).toBeGreaterThan(0);
-            // TODO: expect(pages[0]).toBeInstanceOf(PageEntry);
+            expect(pages[0]).toBeInstanceOf(CompanyPage || IncidentPage || ProductPage || ProductLinePage);
         });
     });
 });

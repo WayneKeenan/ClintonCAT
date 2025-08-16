@@ -5,7 +5,8 @@
 import browser from 'webextension-polyfill';
 import DOMMessenger from './dom-messenger';
 import { DOMMessengerAction, IShowInPageNotificationPayload } from './dom-messenger.types';
-import { IPageEntry, PageEntry } from '@/database';
+import { IPage } from '@/models/page';
+import { CompanyPage } from '@/models/company';
 
 type MessagePayload =
     | { action: DOMMessengerAction.DOM_QUERY_SELECTOR_ALL; selector: string }
@@ -15,7 +16,7 @@ type MessagePayload =
     | { action: DOMMessengerAction.DOM_CREATE_ELEMENT; id: string; element: string; html: string }
     | ({
           action: DOMMessengerAction.DOM_SHOW_IN_PAGE_NOTIFICATION;
-          pages: IPageEntry[];
+          pages: IPage[];
       } & IShowInPageNotificationPayload);
 
 type MessageListener = (
@@ -224,7 +225,15 @@ describe('DOMMessenger', () => {
             const sendResponse = jest.fn();
             const testMessage = 'Hello from test!';
 
-            const testPage = new PageEntry({ pageId: 1, pageTitle: 'title', popupText: 'text', category: 'category' });
+            const testPage = CompanyPage.fromCargoExport({
+                PageID: '1',
+                PageName: 'title',
+                Description: 'test company',
+                Industry: '',
+                ParentCompany: '',
+                Type: '',
+                Website: '',
+            });
 
             const pages = [testPage];
 
@@ -251,7 +260,7 @@ describe('DOMMessenger', () => {
             expect(containerElement).not.toBeNull();
             expect(containerElement.nodeName.toLowerCase()).toBe('div');
             expect(containerElement.textContent).toContain(testMessage);
-            expect(containerElement.textContent).toContain(testPage.pageTitle);
+            expect(containerElement.textContent).toContain(testPage.pageName);
             expect(containerElement?.children.length).toBeGreaterThan(0);
             expect(containerElement.textContent).toContain(testMessage);
 
