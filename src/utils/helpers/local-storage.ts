@@ -6,6 +6,7 @@
 export interface ILocalStoragePage {
     timestamp: number;
     pageId: number;
+    dismissed: string;
 }
 
 class LocalStorage {
@@ -45,6 +46,7 @@ class LocalStorage {
         const page: ILocalStoragePage = {
             timestamp: 0,
             pageId: pageId,
+            dismissed: '',
         };
 
         const pages = LocalStorage.read();
