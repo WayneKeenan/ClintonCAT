@@ -1,6 +1,6 @@
-import { Page } from './page';
+import { ArticleType, Page } from '@/models/page';
 
-export interface IProductLineEntry {
+export interface IProductLineCargo {
     PageID: string;
     PageName: string;
 
@@ -10,29 +10,28 @@ export interface IProductLineEntry {
     Website: string;
 }
 
-export interface IProductLine {
-    pageName: string;
+export interface IProductLinePage {
     pageId: number;
-
+    pageName: string;
+    articleType: ArticleType;
     categories: string[];
     company: string;
     description: string;
     websites: string[];
 }
 
-export class ProductLine extends Page implements IProductLine {
+export class ProductLinePage extends Page implements IProductLinePage {
     private _categories: string[];
     private _company: string;
     private _description: string;
     private _websites: string[];
 
-    constructor(entry: IProductLineEntry) {
-        super({ PageID: entry.PageID, PageName: entry.PageName });
-
-        this._categories = entry.Category.split(',').map((category) => category.trim());
-        this._company = entry.Company;
-        this._description = entry.Description;
-        this._websites = entry.Website.split(',').map((website) => website.trim());
+    constructor(data: IProductLinePage) {
+        super({ pageId: data.pageId, pageName: data.pageName, articleType: data.articleType });
+        this._categories = data.categories;
+        this._company = data.company;
+        this._description = data.description;
+        this._websites = data.websites;
     }
 
     get categories(): string[] {
@@ -49,5 +48,31 @@ export class ProductLine extends Page implements IProductLine {
 
     get websites(): string[] {
         return this._websites;
+    }
+
+    static fromCargoExport(data: IProductLineCargo): ProductLinePage {
+        return new ProductLinePage({
+            pageId: Number(data.PageID),
+            pageName: data.PageName,
+            articleType: ArticleType.ProductLine,
+            categories: data.Category.split(',').map((category) => category.trim()),
+            company: data.Company,
+            description: data.Description,
+            websites: data.Website.split(',').map((website) => website.trim()),
+        });
+    }
+
+    static fromJSON(data: IProductLinePage): ProductLinePage {
+        return new ProductLinePage(data);
+    }
+
+    toJSON() {
+        return {
+            ...super.toJSON(),
+            categories: this._categories,
+            company: this._company,
+            description: this._description,
+            websites: this._websites,
+        };
     }
 }

@@ -1,6 +1,6 @@
-import { Page } from './page';
+import { ArticleType, Page } from '@/models/page';
 
-export interface ICompanyEntry {
+export interface ICompanyCargo {
     PageID: string;
     PageName: string;
 
@@ -11,10 +11,10 @@ export interface ICompanyEntry {
     Website: string;
 }
 
-export interface ICompany {
-    pageName: string;
+export interface ICompanyPage {
     pageId: number;
-
+    pageName: string;
+    articleType: ArticleType;
     description: string;
     industries: string[];
     parentCompany: string;
@@ -22,21 +22,20 @@ export interface ICompany {
     websites: string[];
 }
 
-export class Company extends Page implements ICompany {
+export class CompanyPage extends Page implements ICompanyPage {
     private _description: string;
     private _industries: string[];
     private _parentCompany: string;
     private _type: string;
     private _websites: string[];
 
-    constructor(companyEntry: ICompanyEntry) {
-        super({ PageID: companyEntry.PageID, PageName: companyEntry.PageName });
-
-        this._description = companyEntry.Description;
-        this._industries = companyEntry.Industry.split(',').map((industry) => industry.trim());
-        this._parentCompany = companyEntry.ParentCompany;
-        this._type = companyEntry.Type;
-        this._websites = companyEntry.Website.split(',').map((website) => website.trim());
+    constructor(data: ICompanyPage) {
+        super({ pageId: data.pageId, pageName: data.pageName, articleType: data.articleType });
+        this._description = data.description;
+        this._industries = data.industries;
+        this._parentCompany = data.parentCompany;
+        this._type = data.type;
+        this._websites = data.websites;
     }
 
     get description(): string {
@@ -57,5 +56,33 @@ export class Company extends Page implements ICompany {
 
     get websites(): string[] {
         return this._websites;
+    }
+
+    static fromCargoExport(data: ICompanyCargo): CompanyPage {
+        return new CompanyPage({
+            pageId: Number(data.PageID),
+            pageName: data.PageName,
+            articleType: ArticleType.Company,
+            description: data.Description,
+            industries: data.Industry.split(',').map((industry) => industry.trim()),
+            parentCompany: data.ParentCompany,
+            type: data.Type,
+            websites: data.Website.split(',').map((website) => website.trim()),
+        });
+    }
+
+    static fromJSON(data: ICompanyPage): CompanyPage {
+        return new CompanyPage(data);
+    }
+
+    toJSON() {
+        return {
+            ...super.toJSON(),
+            description: this._description,
+            industries: this._industries,
+            parentCompany: this._parentCompany,
+            type: this._type,
+            websites: this._websites,
+        };
     }
 }
