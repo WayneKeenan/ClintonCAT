@@ -1,11 +1,14 @@
 import React from 'react';
 
-import { IPageEntry, PageEntry } from '@/database';
-
+import { Page } from '@/models/page';
 import LocalStorage from '@/utils/helpers/local-storage';
+import { CompanyPage } from '@/models/company';
+import { IncidentPage } from '@/models/incident';
+import { ProductPage } from '@/models/product';
+import { ProductLinePage } from '@/models/product-line';
 
 export interface IInpagenotificationPage {
-    page: PageEntry;
+    page: Page;
 }
 
 const InpagenotificationPage = ({ page }: IInpagenotificationPage) => {
@@ -51,9 +54,9 @@ const InpagenotificationPage = ({ page }: IInpagenotificationPage) => {
                         </span>
                     </div>
                     <a href={page.url()} target="_blank">
-                        {page.pageTitle}
+                        {page.pageName}
                     </a>
-                    <div className="page-info hidden">{page.popupText}</div>
+                    <div className="page-info hidden">{page.description}</div>
                 </div>
             </>
         );
@@ -79,7 +82,7 @@ const InpagenotificationMessage = ({ message }: IInpagenotificationMessage) => {
 };
 
 export interface IInpagenotificationCategory {
-    pages: [string, PageEntry[]];
+    pages: [string, Page[]];
 }
 
 const InpagenotificationCategory = ({ pages }: IInpagenotificationCategory) => {
@@ -121,7 +124,7 @@ const InpagenotificationCategory = ({ pages }: IInpagenotificationCategory) => {
 export interface IInpagenotification {
     containerId: string;
     message: string;
-    pages: IPageEntry[];
+    pages: Page[];
 }
 
 const Inpagenotification = ({ containerId, message, pages }: IInpagenotification) => {
@@ -167,12 +170,25 @@ const Inpagenotification = ({ containerId, message, pages }: IInpagenotification
         }
     };
 
-    const _pages = new Map<string, PageEntry[]>();
+    const _pages = new Map<string, Page[]>([
+        ['Company', []],
+        ['Incident', []],
+        ['Product', []],
+        ['ProductLine', []],
+    ]);
     pages.forEach((page) => {
-        if (!_pages.has(page.category)) {
-            _pages.set(page.category, []);
+        if (page instanceof CompanyPage) {
+            _pages.get('Company')?.push(page);
         }
-        _pages.get(page.category)?.push(new PageEntry(page));
+        if (page instanceof IncidentPage) {
+            _pages.get('Incident')?.push(page);
+        }
+        if (page instanceof ProductPage) {
+            _pages.get('Product')?.push(page);
+        }
+        if (page instanceof ProductLinePage) {
+            _pages.get('ProductLine')?.push(page);
+        }
     });
 
     const inpagenotificationCategorysPages = [..._pages].map((pages, index) => (

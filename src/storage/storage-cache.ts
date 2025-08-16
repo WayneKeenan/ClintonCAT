@@ -1,4 +1,5 @@
-import { IPageEntry, PagesDB } from '@/database';
+import { ICargoExport, PagesDB } from '@/database';
+import { Page } from '@/models/page';
 import browser from 'webextension-polyfill';
 
 class StorageCache {
@@ -59,7 +60,7 @@ class StorageCache {
             const jsonData: string = await this.fetchJson(PagesDB.PAGES_DB_JSON_URL);
             await this.saveCache(jsonData, now);
             console.log(jsonData);
-            this.pagesDb.setPages(jsonData as unknown as IPageEntry[]);
+            this.pagesDb.setPages(jsonData as unknown as ICargoExport);
 
             console.log('Pages database updated successfully.');
         } catch (error: unknown) {
@@ -72,9 +73,9 @@ class StorageCache {
     }
 
     // Function to get the cached pages database
-    async getCachedPagesDB(): Promise<IPageEntry[]> {
+    async getCachedPagesDB(): Promise<Page[]> {
         const { [StorageCache.CACHE_KEY]: pagesDb } = await browser.storage.local.get(StorageCache.CACHE_KEY);
-        return (pagesDb as IPageEntry[] | undefined) ?? [];
+        return (pagesDb as Page[] | undefined) ?? [];
     }
 
     async fetchJson(url: string): Promise<string> {
