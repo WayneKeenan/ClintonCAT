@@ -63,11 +63,11 @@ export class PagesDB {
     }
 
     public setPages(cargoExport: ICargoExport) {
-        this.companyPages = cargoExport.Company.map((companyEntry) => new CompanyPage(companyEntry));
-        this.incidentPages = cargoExport.Incident.map((incidentEntry) => new IncidentPage(incidentEntry));
-        this.productPages = cargoExport.Product.map((productEntry) => new ProductPage(productEntry));
-        this.productLinePages = cargoExport.ProductLine.map(
-            (productLineEntry) => new ProductLinePage(productLineEntry)
+        this.companyPages = cargoExport.Company.map((companyEntry) => CompanyPage.fromCargoExport(companyEntry));
+        this.incidentPages = cargoExport.Incident.map((incidentEntry) => IncidentPage.fromCargoExport(incidentEntry));
+        this.productPages = cargoExport.Product.map((productEntry) => ProductPage.fromCargoExport(productEntry));
+        this.productLinePages = cargoExport.ProductLine.map((productLineEntry) =>
+            ProductLinePage.fromCargoExport(productLineEntry)
         );
     }
     public getPagesForDomain(domain: string): CATWikiPageSearchResults {

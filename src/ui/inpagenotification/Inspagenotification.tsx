@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { Page } from '@/models/page';
+import { ArticleType, IPage, Page } from '@/models/page';
 import LocalStorage from '@/utils/helpers/local-storage';
-import { CompanyPage } from '@/models/company';
-import { IncidentPage } from '@/models/incident';
-import { ProductPage } from '@/models/product';
-import { ProductLinePage } from '@/models/product-line';
+import { CompanyPage, ICompanyPage } from '@/models/company';
+import { IIncidentPage, IncidentPage } from '@/models/incident';
+import { IProductPage, ProductPage } from '@/models/product';
+import { IProductLinePage, ProductLinePage } from '@/models/product-line';
 
 export interface IInpagenotificationPage {
     page: Page;
@@ -124,7 +124,7 @@ const InpagenotificationCategory = ({ pages }: IInpagenotificationCategory) => {
 export interface IInpagenotification {
     containerId: string;
     message: string;
-    pages: Page[];
+    pages: IPage[];
 }
 
 const Inpagenotification = ({ containerId, message, pages }: IInpagenotification) => {
@@ -170,30 +170,31 @@ const Inpagenotification = ({ containerId, message, pages }: IInpagenotification
         }
     };
 
-    const _pages = new Map<string, Page[]>([
-        ['Company', []],
-        ['Incident', []],
-        ['Product', []],
-        ['ProductLine', []],
-    ]);
+    const _pages = {
+        Company: [] as CompanyPage[],
+        Incident: [] as IncidentPage[],
+        Product: [] as ProductPage[],
+        ProductLine: [] as ProductLinePage[],
+    };
+
     pages.forEach((page) => {
-        if (page instanceof CompanyPage) {
-            _pages.get('Company')?.push(page);
+        if (page.articleType == ArticleType.Company) {
+            _pages.Company.push(CompanyPage.fromJSON(page as unknown as ICompanyPage));
         }
-        if (page instanceof IncidentPage) {
-            _pages.get('Incident')?.push(page);
+        if (page.articleType == ArticleType.Incident) {
+            _pages.Incident.push(IncidentPage.fromJSON(page as unknown as IIncidentPage));
         }
-        if (page instanceof ProductPage) {
-            _pages.get('Product')?.push(page);
+        if (page.articleType == ArticleType.Product) {
+            _pages.Product.push(ProductPage.fromJSON(page as unknown as IProductPage));
         }
-        if (page instanceof ProductLinePage) {
-            _pages.get('ProductLine')?.push(page);
+        if (page.articleType == ArticleType.ProductLine) {
+            _pages.ProductLine.push(ProductLinePage.fromJSON(page as unknown as IProductLinePage));
         }
     });
 
-    const inpagenotificationCategorysPages = [..._pages].map((pages, index) => (
-        <InpagenotificationCategory key={index} pages={pages} />
-    ));
+    const inpagenotificationCategorysPages = Object.entries(_pages).map(([category, categoryPages], index) => {
+        if (categoryPages.length) return <InpagenotificationCategory key={index} pages={[category, categoryPages]} />;
+    });
 
     return (
         <>
