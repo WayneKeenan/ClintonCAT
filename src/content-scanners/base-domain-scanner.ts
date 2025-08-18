@@ -20,8 +20,8 @@ export abstract class BaseDomainScanner implements IContentScannerPlugin {
         console.log(`${scannerId}: Attempting search: ${description}`);
         try {
             const results = searchFn();
-            if (results.pageEntries.length > 0) {
-                console.log(`${scannerId}: Found ${results.pageEntries.length.toString()} pages via ${description}.`);
+            if (results.totalPagesFound > 0) {
+                console.log(`${scannerId}: Found ${results.totalPagesFound.toString()} pages via ${description}.`);
                 combinedResults.addPageEntries(results.pageEntries);
                 found = true;
             } else {
