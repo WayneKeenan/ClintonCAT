@@ -18,10 +18,10 @@ class StorageCache {
         });
         browser.alarms.onAlarm.addListener((alarm) => {
             if (alarm.name === StorageCache.UPDATE_ALARM_NAME) {
-                // void this.updatePagesDB();
+                void this.updatePagesDB();
             }
         });
-        // void this.updatePagesDB();
+        void this.updatePagesDB();
     }
 
     setDatabaseTarget(pagesDb: PagesDB): void {

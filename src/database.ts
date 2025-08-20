@@ -41,7 +41,7 @@ export class CATWikiPageSearchResults {
 
 export class PagesDB {
     static readonly PAGES_DB_JSON_URL: string =
-        'https://raw.githubusercontent.com/WayneKeenan/ClintonCAT/refs/heads/main/data/pages_db.json';
+        'https://raw.githubusercontent.com/WKDLabs/CATWikiCargoPrototype/refs/heads/export/data/all_cargo_combined.json';
     private companyPages: CompanyPage[] = [];
     private incidentPages: IncidentPage[] = [];
     private productPages: ProductPage[] = [];
