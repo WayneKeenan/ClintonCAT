@@ -42,15 +42,36 @@ export class CATWikiPageSearchResults {
 export class PagesDB {
     static readonly PAGES_DB_JSON_URL: string =
         'https://raw.githubusercontent.com/WKDLabs/CATWikiCargoPrototype/refs/heads/export/data/all_cargo_combined.json';
-    private companyPages: CompanyPage[] = [];
-    private incidentPages: IncidentPage[] = [];
-    private productPages: ProductPage[] = [];
-    private productLinePages: ProductLinePage[] = [];
+    private _companyPages: CompanyPage[] = [];
+    private _incidentPages: IncidentPage[] = [];
+    private _productPages: ProductPage[] = [];
+    private _productLinePages: ProductLinePage[] = [];
 
     static readonly pagesDbDefault: ICargoExport = pagesDbJsonFile;
 
+    get companyPages(): CompanyPage[] {
+        return this._companyPages;
+    }
+
+    get incidentPages(): IncidentPage[] {
+        return this._incidentPages;
+    }
+
+    get productPages(): ProductPage[] {
+        return this._productPages;
+    }
+
+    get productLinePages(): ProductLinePage[] {
+        return this._productLinePages;
+    }
+
     get allPages(): Page[] {
-        return ([] as Page[]).concat(this.companyPages, this.incidentPages, this.productPages, this.productLinePages);
+        return ([] as Page[]).concat(
+            this._companyPages,
+            this._incidentPages,
+            this._productPages,
+            this._productLinePages
+        );
     }
 
     // load the baked in pagesdb json as an initial db, just in case...
@@ -63,10 +84,10 @@ export class PagesDB {
     }
 
     public setPages(cargoExport: ICargoExport) {
-        this.companyPages = cargoExport.Company.map((companyEntry) => CompanyPage.fromCargoExport(companyEntry));
-        this.incidentPages = cargoExport.Incident.map((incidentEntry) => IncidentPage.fromCargoExport(incidentEntry));
-        this.productPages = cargoExport.Product.map((productEntry) => ProductPage.fromCargoExport(productEntry));
-        this.productLinePages = cargoExport.ProductLine.map((productLineEntry) =>
+        this._companyPages = cargoExport.Company.map((companyEntry) => CompanyPage.fromCargoExport(companyEntry));
+        this._incidentPages = cargoExport.Incident.map((incidentEntry) => IncidentPage.fromCargoExport(incidentEntry));
+        this._productPages = cargoExport.Product.map((productEntry) => ProductPage.fromCargoExport(productEntry));
+        this._productLinePages = cargoExport.ProductLine.map((productLineEntry) =>
             ProductLinePage.fromCargoExport(productLineEntry)
         );
     }

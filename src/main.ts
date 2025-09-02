@@ -1,6 +1,5 @@
 import messageHandler from '@/common/messages/message-handler';
 import { getDomainWithoutSuffix, parse } from 'tldts';
-import ContentScanner from '@/common/services/content-scanner';
 import { IScanParameters } from '@/common/services/content-scanner.types';
 import Preferences from '@/common/services/preferences';
 import DOMMessenger from '@/common/helpers/dom-messenger';
@@ -16,6 +15,7 @@ import { Page } from './models/page';
 
 import NotificationsFilter, { INotificationsFilter } from './utils/helpers/notification-filter';
 import { IInPageNotificationOptions } from '@/ui/inpagenotification/Inspagenotification';
+import { ScannerFactory } from './common/services/scanner';
 
 export interface IMainMessage {
     badgeText: string;
@@ -26,14 +26,14 @@ export interface IMainMessage {
 export class Main {
     storageCache: StorageCache;
     pagesDatabase: PagesDB;
-    contentScanner: ContentScanner;
+    scannerFactory: ScannerFactory;
 
     constructor() {
         // TODO: need a BrowserLocalStorage for pages db
         this.pagesDatabase = new PagesDB();
         this.pagesDatabase.initDefaultPages();
         this.storageCache = new StorageCache(this.pagesDatabase);
-        this.contentScanner = new ContentScanner();
+        this.scannerFactory = new ScannerFactory();
     }
 
     indicateStatus() {
@@ -189,7 +189,7 @@ export class Main {
      * Scans the domain and in-page contents, merges results,
      * and indicates how many CAT pages were found.
      */
-    async onPageLoaded(unparsedDomain: string, url: string): Promise<void> {
+    onPageLoaded(unparsedDomain: string, url: string): void {
         if (!parse(unparsedDomain, { allowPrivateDomains: true }).domain) {
             throw new Error('onPageLoaded received an invalid url');
         }
@@ -213,7 +213,9 @@ export class Main {
             notify: (results) => this.indicateCATPages(results, domMessenger),
         };
 
-        await this.contentScanner.checkPageContents(scannerParameters);
+        const scanner = this.scannerFactory.getScanner(scannerParameters);
+        const results = scanner.scan();
+        this.indicateCATPages(results, domMessenger);
     }
 
     /**

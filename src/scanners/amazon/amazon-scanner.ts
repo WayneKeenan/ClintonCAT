@@ -1,5 +1,6 @@
 import { IScanParameters } from '@/common/services/content-scanner.types';
-import { BaseDomainScanner } from '../base-domain-scanner';
+import { BaseScanner, ScannerMetadata } from '../base-scanner';
+import { CATWikiPageSearchResults } from '@/database';
 
 const COMMON_PREFIXES = new Set(['new', 'used', 'refurbished', 'certified', 'amazon', 'basics']);
 
@@ -21,9 +22,14 @@ function sanitizeAndCapitalize(brand: string, isMultiWordHint = false): string {
     }
 }
 
-class AmazonScanner extends BaseDomainScanner {
-    metaInfo(): string {
-        return 'amazon';
+class AmazonScanner extends BaseScanner {
+    protected _metadata: ScannerMetadata = { name: 'Amazon Scanner' };
+    private _params: IScanParameters;
+
+    constructor(parameters: IScanParameters) {
+        super();
+
+        this._params = parameters;
     }
 
     canScanContent(params: IScanParameters): boolean {
@@ -34,7 +40,7 @@ class AmazonScanner extends BaseDomainScanner {
         return params.mainDomain;
     }
 
-    protected override extractEntity(url: string): string | null {
+    protected extractEntity(url: string): string | null {
         const scannerName = this.constructor.name;
         try {
             const urlObject = new URL(url);
@@ -106,6 +112,110 @@ class AmazonScanner extends BaseDomainScanner {
 
         console.log(`${scannerName}: Could not extract from URL: ${url}`);
         return null;
+    }
+
+    private performSearch(
+        searchFn: () => CATWikiPageSearchResults,
+        description: string,
+        combinedResults: CATWikiPageSearchResults,
+        scannerId: string
+    ): boolean {
+        let found = false;
+        console.log(`${scannerId}: Attempting search: ${description}`);
+        try {
+            const results = searchFn();
+            if (results.totalPagesFound > 0) {
+                console.log(`${scannerId}: Found ${results.totalPagesFound.toString()} pages via ${description}.`);
+                combinedResults.addPageEntries(results.pageEntries);
+                found = true;
+            } else {
+                console.log(`${scannerId}: No pages found via ${description}.`);
+            }
+        } catch (error) {
+            if (
+                description.includes('Consecutive Words') &&
+                error instanceof Error &&
+                error.message.startsWith('Unimplemented')
+            ) {
+                console.warn(`${scannerId}: Skipped unimplemented search feature: ${description} (${error.message})`);
+            } else {
+                console.error(`${scannerId}: Error during search (${description}):`, error);
+            }
+        }
+        return found;
+    }
+
+    scan(): CATWikiPageSearchResults {
+        const pagesDb = this._params.pagesDb;
+        const combinedResults = new CATWikiPageSearchResults();
+        const scannerId = this.metadata().name || this.constructor.name;
+
+        console.log(`${scannerId}: Starting scan for URL: ${this._params.url}`);
+
+        const domainSearchKey = this.getDomainKeyForSearch(this._params);
+        this.performSearch(
+            () => pagesDb.fuzzySearch(domainSearchKey),
+            `Domain Key Fuzzy Search ('${domainSearchKey}')`,
+            combinedResults,
+            scannerId
+        );
+
+        const extractedEntity = this.extractEntity(this._params.url);
+
+        if (extractedEntity) {
+            console.log(`${scannerId}: Extracted entity: "${extractedEntity}"`);
+
+            this.performSearch(
+                () => pagesDb.getPagesForCategory(extractedEntity),
+                `Category Match ('${extractedEntity}')`,
+                combinedResults,
+                scannerId
+            );
+
+            this.performSearch(
+                () => pagesDb.findConsecutiveWords(extractedEntity, 1, true),
+                `Consecutive Words Match ('${extractedEntity}')`,
+                combinedResults,
+                scannerId
+            );
+
+            this.performSearch(
+                () => pagesDb.simpleSearch(extractedEntity),
+                `Simple Substring Match ('${extractedEntity}')`,
+                combinedResults,
+                scannerId
+            );
+
+            this.performSearch(
+                () => pagesDb.fuzzySearch(extractedEntity),
+                `Fuzzy Word Match ('${extractedEntity}')`,
+                combinedResults,
+                scannerId
+            );
+        } else {
+            console.log(`${scannerId}: No specific entity extracted from URL, skipping entity-based searches.`);
+        }
+
+        const uniquePageIds = new Set<number>();
+        const uniquePageEntries = combinedResults.pageEntries.filter((entry) => {
+            if (uniquePageIds.has(entry.pageId)) {
+                return false;
+            }
+            uniquePageIds.add(entry.pageId);
+            return true;
+        });
+
+        const finalResults = new CATWikiPageSearchResults(uniquePageEntries);
+        const totalUniquePagesFound = finalResults.totalPagesFound;
+
+        if (totalUniquePagesFound > 0) {
+            console.log(`${scannerId}: Notifying with ${totalUniquePagesFound.toString()} unique total pages found.`);
+            this._params.notify(finalResults);
+        } else {
+            console.log(`${scannerId}: No relevant pages found after all searches.`);
+        }
+
+        return finalResults;
     }
 }
 
