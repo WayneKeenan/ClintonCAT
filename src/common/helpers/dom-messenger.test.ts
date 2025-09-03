@@ -243,6 +243,10 @@ describe('DOMMessenger', () => {
                 showMore: true,
                 showMute: true,
                 showHide: true,
+                showCompany: true,
+                showIncident: true,
+                showProduct: true,
+                showProductLine: true,
                 autoHideTime: 5000,
             };
 

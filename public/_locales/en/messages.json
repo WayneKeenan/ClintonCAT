@@ -70,6 +70,26 @@
     "GO_TO_OPTIONS": {
         "message": "Go to Options"
     },
+    "DATABASE_SETTINGS": {
+        "message": "Wiki database options"
+    },
+    "PAGES_DATABASE_UPDATE": {
+        "message": "Manually update"
+    },
+    "UPDATE_NOW": {
+        "message": "Update now"
+    },
+    "AUTO_UPDATE_PAGESDB": {
+        "message": "Automatic update"
+    },
+    "PAGES_DATABASE_UPDATE_INTERVAL": {
+        "message": "Updating every $days$ days",
+        "placeholders": {
+            "days": {
+                "content": "$1"
+            }
+        }
+    },
     "SHOW_MORE_OPTION": {
         "message": "Show more option"
     },
@@ -103,5 +123,17 @@
     },
     "IN_PAGE_SETTINGS": {
         "message": "In page message settings"
+    },
+    "SHOW_COMPANY": {
+        "message": "Show company results"
+    },
+    "SHOW_INCIDENT": {
+        "message": "Show incedent results"
+    },
+    "SHOW_PRODUCT": {
+        "message": "Show product results"
+    },
+    "SHOW_PRODUCTLINE": {
+        "message": "Show productline results"
     }
 }
