@@ -70,6 +70,26 @@
     "GO_TO_OPTIONS": {
         "message": "Gå til indstillinger"
     },
+    "DATABASE_SETTINGS": {
+        "message": "Wiki database indstillinger"
+    },
+    "PAGES_DATABASE_UPDATE": {
+        "message": "Opdater manuelt"
+    },
+    "UPDATE_NOW": {
+        "message": "Opdater nu"
+    },
+    "AUTO_UPDATE_PAGESDB": {
+        "message": "Automatisk opdatering"
+    },
+    "PAGES_DATABASE_UPDATE_INTERVAL": {
+        "message": "Opdatere hver $days$ dag",
+        "placeholders": {
+            "days": {
+                "content": "$1"
+            }
+        }
+    },
     "SHOW_MORE_OPTION": {
         "message": "Vis mere option"
     },
@@ -103,5 +123,17 @@
     },
     "IN_PAGE_SETTINGS": {
         "message": "Side besked instillinger"
+    },
+    "SHOW_COMPANY": {
+        "message": "Vis firma resultater"
+    },
+    "SHOW_INCIDENT": {
+        "message": "Vis hændelse resultater"
+    },
+    "SHOW_PRODUCT": {
+        "message": "Vis produkt resultater"
+    },
+    "SHOW_PRODUCTLINE": {
+        "message": "Vis produktlinje resultater"
     }
 }

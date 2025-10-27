@@ -15,18 +15,31 @@ class Preferences {
     static readonly PAGE_NOTIFICATIONS_SHOWMORE_KEY = 'page_notifications_show_more';
     static readonly PAGE_NOTIFICATIONS_SHOWMUTE_KEY = 'page_notifications_show_mute';
     static readonly PAGE_NOTIFICATIONS_SHOWHIDE_KEY = 'page_notifications_show_hide';
+    static readonly PAGE_NOTIFICATIONS_SHOW_COMPANY_KEY = 'page_notifications_show_company';
+    static readonly PAGE_NOTIFICATIONS_SHOW_INCIDENT_KEY = 'page_notifications_show_incident';
+    static readonly PAGE_NOTIFICATIONS_SHOW_PRODUCT_KEY = 'page_notifications_show_product';
+    static readonly PAGE_NOTIFICATIONS_SHOW_PRODUCTLINE_KEY = 'page_notifications_show_productline';
+
+    static readonly AUTO_UPDATE_PAGESDB_KEY = 'auto_update_pagesdb';
+    static readonly AUTO_UPDATE_PAGESDB_INTERVAL_KEY = 'auto_update_interval_pagesdb';
 
     static isEnabled = new ObservableValue<boolean>(true);
     static domainExclusions = new ObservableSet<string>();
     static browserNotificationsEnabled = new ObservableValue<boolean>(true);
-    static pageNotificationsEnabled = new ObservableValue<boolean>(true);
-
     //in page options
+    static pageNotificationsEnabled = new ObservableValue<boolean>(true);
     static pageNotificationsAutoHideTime = new ObservableValue<number>(5);
     static pageNotificationsDismissTime = new ObservableValue<number>(1);
     static pageNotificationsShowMore = new ObservableValue<boolean>(true);
     static pageNotificationsShowMute = new ObservableValue<boolean>(true);
     static pageNotificationsShowHide = new ObservableValue<boolean>(true);
+    static pageNotificationsShowCompany = new ObservableValue<boolean>(true);
+    static pageNotificationsShowIncident = new ObservableValue<boolean>(true);
+    static pageNotificationsShowProduct = new ObservableValue<boolean>(true);
+    static pageNotificationsShowProductLine = new ObservableValue<boolean>(true);
+
+    static autoUpdateDB = new ObservableValue<boolean>(true);
+    static autoUpdateIntervalDB = new ObservableValue<number>(1);
 
     // Injected storage backends  (TODO: do we need both?)
     // Sync is used to share data across browsers if logged in, e.g. plugin settings
@@ -61,9 +74,14 @@ class Preferences {
         this.pageNotificationsShowMore.removeAllListeners();
         this.pageNotificationsShowMute.removeAllListeners();
         this.pageNotificationsShowHide.removeAllListeners();
+        this.pageNotificationsShowCompany.removeAllListeners();
+        this.pageNotificationsShowIncident.removeAllListeners();
+        this.pageNotificationsShowProduct.removeAllListeners();
+        this.pageNotificationsShowProductLine.removeAllListeners();
+        this.autoUpdateDB.removeAllListeners();
+        this.autoUpdateIntervalDB.removeAllListeners();
 
         // Set up default callbacks
-
         this.isEnabled.addListener(this.IS_ENABLED_KEY, (result: boolean) => {
             this.setPreference(Preferences.IS_ENABLED_KEY, result);
         });
@@ -98,6 +116,33 @@ class Preferences {
 
         this.pageNotificationsShowHide.addListener(this.PAGE_NOTIFICATIONS_SHOWHIDE_KEY, (result: boolean) => {
             this.setPreference(Preferences.PAGE_NOTIFICATIONS_SHOWHIDE_KEY, result);
+        });
+
+        this.pageNotificationsShowCompany.addListener(this.PAGE_NOTIFICATIONS_SHOW_COMPANY_KEY, (result: boolean) => {
+            this.setPreference(Preferences.PAGE_NOTIFICATIONS_SHOW_COMPANY_KEY, result);
+        });
+
+        this.pageNotificationsShowIncident.addListener(this.PAGE_NOTIFICATIONS_SHOW_INCIDENT_KEY, (result: boolean) => {
+            this.setPreference(Preferences.PAGE_NOTIFICATIONS_SHOW_INCIDENT_KEY, result);
+        });
+
+        this.pageNotificationsShowProduct.addListener(this.PAGE_NOTIFICATIONS_SHOW_PRODUCT_KEY, (result: boolean) => {
+            this.setPreference(Preferences.PAGE_NOTIFICATIONS_SHOW_PRODUCT_KEY, result);
+        });
+
+        this.pageNotificationsShowProductLine.addListener(
+            this.PAGE_NOTIFICATIONS_SHOW_PRODUCTLINE_KEY,
+            (result: boolean) => {
+                this.setPreference(Preferences.PAGE_NOTIFICATIONS_SHOW_PRODUCTLINE_KEY, result);
+            }
+        );
+
+        this.autoUpdateDB.addListener(this.AUTO_UPDATE_PAGESDB_KEY, (result: boolean) => {
+            void this.setPreference(Preferences.AUTO_UPDATE_PAGESDB_KEY, result);
+        });
+
+        this.autoUpdateIntervalDB.addListener(this.AUTO_UPDATE_PAGESDB_INTERVAL_KEY, (result: number) => {
+            void this.setPreference(Preferences.AUTO_UPDATE_PAGESDB_INTERVAL_KEY, result);
         });
 
         // Attempt preference retrieval
@@ -164,6 +209,50 @@ class Preferences {
         } else {
             this.pageNotificationsShowHide.value = true;
         }
+
+        const rawpageNotificationsShowCompany = await this.getPreference(this.PAGE_NOTIFICATIONS_SHOW_COMPANY_KEY);
+        if (typeof rawpageNotificationsShowCompany === 'boolean') {
+            this.pageNotificationsShowCompany.value = rawpageNotificationsShowCompany;
+        } else {
+            this.pageNotificationsShowCompany.value = true;
+        }
+
+        const rawpageNotificationsShowIncident = await this.getPreference(this.PAGE_NOTIFICATIONS_SHOW_INCIDENT_KEY);
+        if (typeof rawpageNotificationsShowIncident === 'boolean') {
+            this.pageNotificationsShowIncident.value = rawpageNotificationsShowIncident;
+        } else {
+            this.pageNotificationsShowIncident.value = true;
+        }
+
+        const rawpageNotificationsShowProduct = await this.getPreference(this.PAGE_NOTIFICATIONS_SHOW_PRODUCT_KEY);
+        if (typeof rawpageNotificationsShowProduct === 'boolean') {
+            this.pageNotificationsShowProduct.value = rawpageNotificationsShowProduct;
+        } else {
+            this.pageNotificationsShowProduct.value = true;
+        }
+
+        const rawpageNotificationsShowProductLine = await this.getPreference(
+            this.PAGE_NOTIFICATIONS_SHOW_PRODUCTLINE_KEY
+        );
+        if (typeof rawpageNotificationsShowProductLine === 'boolean') {
+            this.pageNotificationsShowProductLine.value = rawpageNotificationsShowProductLine;
+        } else {
+            this.pageNotificationsShowProductLine.value = true;
+        }
+
+        const rawAutoUpdatePagesDB = await this.getPreference(this.AUTO_UPDATE_PAGESDB_KEY);
+        if (typeof rawAutoUpdatePagesDB === 'boolean') {
+            this.autoUpdateDB.value = rawAutoUpdatePagesDB;
+        } else {
+            this.autoUpdateDB.value = true;
+        }
+
+        const rawAutoUpdateIntervalDB = await this.getPreference(this.AUTO_UPDATE_PAGESDB_KEY);
+        if (typeof rawAutoUpdateIntervalDB === 'number') {
+            this.autoUpdateIntervalDB.value = rawAutoUpdateIntervalDB;
+        } else {
+            this.autoUpdateIntervalDB.value = 1;
+        }
     }
 
     public static dump(): void {
@@ -176,7 +265,13 @@ class Preferences {
             `PageNotificationsDismissTime = ${Preferences.pageNotificationsDismissTime.toString()}, ` +
             `pageNotificationsShowMore = ${Preferences.pageNotificationsShowMore.toString()}, ` +
             `pageNotificationsShowMute = ${Preferences.pageNotificationsShowMute.toString()}, ` +
-            `pageNotificationsShowHide = ${Preferences.pageNotificationsShowHide.toString()}`;
+            `pageNotificationsShowHide = ${Preferences.pageNotificationsShowHide.toString()}, ` +
+            `pageNotificationsShowCompany = ${Preferences.pageNotificationsShowCompany.toString()}, ` +
+            `pageNotificationsShowIncident = ${Preferences.pageNotificationsShowIncident.toString()}, ` +
+            `pageNotificationsShowProduct = ${Preferences.pageNotificationsShowProduct.toString()}, ` +
+            `pageNotificationsShowProductLine = ${Preferences.pageNotificationsShowProductLine.toString()}, ` +
+            `autoUpdateDB = ${Preferences.autoUpdateDB.toString()}, ` +
+            `autoUpdateIntervalDB = ${Preferences.autoUpdateIntervalDB.toString()}`;
         console.log(msg);
     }
 

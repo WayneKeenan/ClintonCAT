@@ -13,6 +13,7 @@ export interface MessageMap {
     notify: [{ title: string; message: string }];
     pageInfo: [{ domain: string; url: string }];
     notifyUpdate: [{ pageId: number; action: string }];
+    optionsAction: [{ action: string }];
 }
 export interface MessageHandlerContext {
     main: Main;

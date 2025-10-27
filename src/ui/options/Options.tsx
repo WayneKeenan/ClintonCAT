@@ -27,10 +27,16 @@ const Options = () => {
 
                 setInPageAutoHideTime(Preferences.pageNotificationsAutoHideTime.value);
                 setInPageDismissTime(Preferences.pageNotificationsDismissTime.value);
-
                 setInPageShowMore(Preferences.pageNotificationsShowMore.value);
                 setInPageShowMute(Preferences.pageNotificationsShowMute.value);
                 setInPageShowHide(Preferences.pageNotificationsShowHide.value);
+                setInPageShowCompany(Preferences.pageNotificationsShowCompany.value);
+                setInPageShowIncident(Preferences.pageNotificationsShowIncident.value);
+                setInPageShowProduct(Preferences.pageNotificationsShowProduct.value);
+                setInPageShowProductLine(Preferences.pageNotificationsShowProductLine.value);
+
+                setAutoUpdateDB(Preferences.autoUpdateDB.value);
+                setAutoUpdateIntervalDB(Preferences.autoUpdateIntervalDB.value);
             })
             .catch((error: unknown) => console.error('Failed to initialize preferences:', error));
 
@@ -60,6 +66,31 @@ const Options = () => {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         addItem();
+    };
+
+    const updatePagesDB = () => {
+        const payload = {
+            action: 'pageDB.update',
+        };
+
+        void browser.runtime.sendMessage({
+            type: 'optionsAction',
+            payload: payload,
+        });
+    };
+
+    const [autoUpdateDB, setAutoUpdateDB] = useState(true);
+    const toggleAutoUpdateDB = () => {
+        setAutoUpdateDB(!autoUpdateDB);
+        Preferences.autoUpdateDB.value = Boolean(!autoUpdateDB);
+    };
+
+    const [autoUpdateIntervalDB, setAutoUpdateIntervalDB] = useState(1);
+    const setAutoUpdateIntervalDBOnChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setAutoUpdateIntervalDB(Number(event.currentTarget.value));
+    };
+    const setAutoUpdateIntervalDBSave = () => {
+        Preferences.autoUpdateIntervalDB.value = autoUpdateIntervalDB;
     };
 
     const [inPageAutoHideTime, setInPageAutoHideTime] = useState(5);
@@ -96,6 +127,30 @@ const Options = () => {
     const toggleInPageShowHide = () => {
         setInPageShowHide(!inPageShowHide);
         Preferences.pageNotificationsShowHide.value = Boolean(!inPageShowHide);
+    };
+
+    const [inPageShowCompany, setInPageShowCompany] = useState(true);
+    const toggleInPageShowCompany = () => {
+        setInPageShowCompany(!inPageShowCompany);
+        Preferences.pageNotificationsShowCompany.value = Boolean(!inPageShowCompany);
+    };
+
+    const [inPageShowIncident, setInPageShowIncident] = useState(true);
+    const toggleInPageShowIncident = () => {
+        setInPageShowIncident(!inPageShowIncident);
+        Preferences.pageNotificationsShowIncident.value = Boolean(!inPageShowIncident);
+    };
+
+    const [inPageShowProduct, setInPageShowProduct] = useState(true);
+    const toggleInPageShowProduct = () => {
+        setInPageShowProduct(!inPageShowProduct);
+        Preferences.pageNotificationsShowProduct.value = Boolean(!inPageShowProduct);
+    };
+
+    const [inPageShowProductLine, setInPageShowProductLine] = useState(true);
+    const toggleInPageShowProductLine = () => {
+        setInPageShowProductLine(!inPageShowProductLine);
+        Preferences.pageNotificationsShowProductLine.value = Boolean(!inPageShowProductLine);
     };
 
     return (
@@ -150,6 +205,45 @@ const Options = () => {
                     </div>
                 </div>
 
+                <div className={styles.settingsColumn}>
+                    <h2 className={styles.columnTitle}>{t('DATABASE_SETTINGS')}</h2>
+                    <div className={styles.settingsContainer}>
+                        <p>{t('PAGES_DATABASE_UPDATE')}</p>
+                        <label className={styles.toggleLabel}>
+                            <button
+                                type="button"
+                                onClick={updatePagesDB}
+                                className={classNames(styles.btn, styles.clearBtn)}>
+                                {t('UPDATE_NOW')}
+                            </button>
+                        </label>
+                        <div className={styles.settingsContainer}>
+                            <label className={styles.toggleLabel}>
+                                <span>{t('AUTO_UPDATE_PAGESDB')}</span>
+                                <input type="checkbox" onClick={toggleAutoUpdateDB} checked={autoUpdateDB} />
+                                <span className={styles.toggleSlider} />
+                            </label>
+                        </div>
+                        <span>{t('PAGES_DATABASE_UPDATE_INTERVAL', [autoUpdateIntervalDB.toString()])}</span>
+                        <div className={styles.slidecontainer}>
+                            <input
+                                type="range"
+                                value={autoUpdateIntervalDB}
+                                min="1"
+                                max="7"
+                                onChange={setAutoUpdateIntervalDBOnChange}
+                                onMouseUp={setAutoUpdateIntervalDBSave}
+                                onTouchEnd={setAutoUpdateIntervalDBSave}
+                                className={styles.slider}
+                                list="dbupdateinterval-data"
+                            />
+                            <datalist className={styles.sliderDatalist} id="dbupdateinterval-data">
+                                <option value="1" label="1"></option>
+                                <option value="7" label="7"></option>
+                            </datalist>
+                        </div>
+                    </div>
+                </div>
                 <div className={styles.settingsColumn}>
                     <h2 className={styles.columnTitle}>{t('IN_PAGE_SETTINGS')}</h2>
                     <div className={styles.settingsContainer}>
@@ -208,6 +302,30 @@ const Options = () => {
                         <label className={styles.toggleLabel}>
                             <span>{t('SHOW_HIDE_OPTION')}</span>
                             <input type="checkbox" checked={inPageShowHide} onClick={toggleInPageShowHide} />
+                            <span className={styles.toggleSlider} />
+                        </label>
+                        <label className={styles.toggleLabel}>
+                            <span>{t('SHOW_COMPANY')}</span>
+                            <input type="checkbox" checked={inPageShowCompany} onClick={toggleInPageShowCompany} />
+                            <span className={styles.toggleSlider} />
+                        </label>
+                        <label className={styles.toggleLabel}>
+                            <span>{t('SHOW_INCIDENT')}</span>
+                            <input type="checkbox" checked={inPageShowIncident} onClick={toggleInPageShowIncident} />
+                            <span className={styles.toggleSlider} />
+                        </label>
+                        <label className={styles.toggleLabel}>
+                            <span>{t('SHOW_PRODUCT')}</span>
+                            <input type="checkbox" checked={inPageShowProduct} onClick={toggleInPageShowProduct} />
+                            <span className={styles.toggleSlider} />
+                        </label>
+                        <label className={styles.toggleLabel}>
+                            <span>{t('SHOW_PRODUCTLINE')}</span>
+                            <input
+                                type="checkbox"
+                                checked={inPageShowProductLine}
+                                onClick={toggleInPageShowProductLine}
+                            />
                             <span className={styles.toggleSlider} />
                         </label>
                     </div>

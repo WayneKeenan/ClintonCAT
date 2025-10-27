@@ -45,8 +45,15 @@ const pageInfoHandler: MessageHandler<'pageInfo'> = (payload, context) => {
 
 const notifyUpdateHandler: MessageHandler<'notifyUpdate'> = (payload, context) => {
     return new Promise(() => {
-        console.log('Notify update Received, triggering page load handler:', payload);
+        console.log('Notify update Received, triggering notify update handler:', payload);
         context.main.onNotifyUpdate(payload.pageId, payload.action);
+    });
+};
+
+const optionsActionHandler: MessageHandler<'optionsAction'> = (payload, context) => {
+    return new Promise(() => {
+        console.log('Notify update Received, triggering options action handler:', payload);
+        context.main.onOptions(payload.action);
     });
 };
 
@@ -55,6 +62,7 @@ const handlers = {
     notify: notifyHandler,
     pageInfo: pageInfoHandler,
     notifyUpdate: notifyUpdateHandler,
+    optionsAction: optionsActionHandler,
 } satisfies { [K in keyof MessageMap]: MessageHandler<K> };
 
 function messageHandler(

@@ -14,6 +14,10 @@ export interface IInPageNotificationOptions {
     showMore: boolean;
     showMute: boolean;
     showHide: boolean;
+    showCompany: boolean;
+    showIncident: boolean;
+    showProduct: boolean;
+    showProductLine: boolean;
     autoHideTime: number;
 }
 
@@ -266,16 +270,16 @@ const InPageNotification = ({ containerId, message, pages, options }: IInPageNot
     };
 
     pages.forEach((page) => {
-        if (page.articleType == ArticleType.Company) {
+        if (options.showCompany && page.articleType == ArticleType.Company) {
             _pages.Company.push(CompanyPage.fromJSON(page as unknown as ICompanyPage));
         }
-        if (page.articleType == ArticleType.Incident) {
+        if (options.showIncident && page.articleType == ArticleType.Incident) {
             _pages.Incident.push(IncidentPage.fromJSON(page as unknown as IIncidentPage));
         }
-        if (page.articleType == ArticleType.Product) {
+        if (options.showProduct && page.articleType == ArticleType.Product) {
             _pages.Product.push(ProductPage.fromJSON(page as unknown as IProductPage));
         }
-        if (page.articleType == ArticleType.ProductLine) {
+        if (options.showProductLine && page.articleType == ArticleType.ProductLine) {
             _pages.ProductLine.push(ProductLinePage.fromJSON(page as unknown as IProductLinePage));
         }
     });

@@ -45,6 +45,7 @@ export class Main {
     /**
      * Display how many pages were found by updating the badge text
      */
+
     indicateCATPages(pages: CATWikiPageSearchResults, domMessenger: IDOMMessengerInterface): void {
         Promise.all([
             Preferences.getPreference(Preferences.IS_ENABLED_KEY),
@@ -55,6 +56,10 @@ export class Main {
             Preferences.getPreference(Preferences.PAGE_NOTIFICATIONS_SHOWHIDE_KEY),
             Preferences.getPreference(Preferences.PAGE_NOTIFICATIONS_AUTOHIDETIME_KEY),
             Preferences.getPreference(Preferences.PAGE_NOTIFICATIONS_DISMISSTIME_KEY),
+            Preferences.getPreference(Preferences.PAGE_NOTIFICATIONS_SHOW_COMPANY_KEY),
+            Preferences.getPreference(Preferences.PAGE_NOTIFICATIONS_SHOW_INCIDENT_KEY),
+            Preferences.getPreference(Preferences.PAGE_NOTIFICATIONS_SHOW_PRODUCT_KEY),
+            Preferences.getPreference(Preferences.PAGE_NOTIFICATIONS_SHOW_PRODUCTLINE_KEY),
             NotificationsFilter.get(),
         ])
             .then(
@@ -67,6 +72,10 @@ export class Main {
                     pageNotificationsShowHide,
                     pageNotificationsAutoHideTime,
                     pageNotificationsDismissTime,
+                    pageNotificationsShowCompany,
+                    pageNotificationsShowIncident,
+                    pageNotificationsShowProduct,
+                    pageNotificationsShowProductLine,
                     filters,
                 ]) => {
                     if (isEnabled) {
@@ -74,6 +83,10 @@ export class Main {
                             showMore: pageNotificationsShowMore as boolean,
                             showMute: pageNotificationsShowMute as boolean,
                             showHide: pageNotificationsShowHide as boolean,
+                            showCompany: pageNotificationsShowCompany as boolean,
+                            showIncident: pageNotificationsShowIncident as boolean,
+                            showProduct: pageNotificationsShowProduct as boolean,
+                            showProductLine: pageNotificationsShowProductLine as boolean,
                             autoHideTime: (pageNotificationsAutoHideTime as number) * 1000,
                         };
 
@@ -238,6 +251,18 @@ export class Main {
             page.revision = pageId;
         }
         NotificationsFilter.update(page);
+    }
+
+    /**
+     * Called when a page (tab) has finished loading.
+     * Scans the domain and in-page contents, merges results,
+     * and indicates how many CAT pages were found.
+     */
+    onOptions(action: string) {
+        if (action == 'pageDB.update') {
+            this.storageCache.updatePagesDB(true);
+        }
+        return;
     }
 
     /**
